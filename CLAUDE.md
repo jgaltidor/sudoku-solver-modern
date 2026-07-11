@@ -26,6 +26,12 @@ pytest tests/test_api.py                # FastAPI TestClient tests only
 pytest tests/ -k unique_solution        # run a single fixture case by name
 ```
 
+CLI (from repo root, same venv as above, without going through the HTTP API):
+```bash
+python scripts/solver.py <input.json> [output.json]  # solve one board, print or write the result
+python scripts/example_solve.py                      # worked example, solves example_inputs/solve_input_example.json
+```
+
 Frontend (from `frontend/`):
 ```bash
 npm install
@@ -49,6 +55,11 @@ src/sudoku_solver/
   solver.py    # OR-Tools CP-SAT model: one add_all_different per row/column/3x3 box
   api.py       # FastAPI app: POST /solve, GET /health
 frontend/      # React + Vite UI, copied from the old repo and re-wired to this backend's API shape
+scripts/
+  solver.py         # CLI: solve one board from a JSON file, without the HTTP API
+  example_solve.py  # worked example invocation of scripts/solver.py
+example_inputs/
+  solve_input_example.json  # sample board used by scripts/example_solve.py
 tests/
   cases/       # input boards (also valid POST /solve request bodies as-is)
   expected/    # expected has_solution / solved_board per case, keyed by matching filename
