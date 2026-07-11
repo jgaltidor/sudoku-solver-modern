@@ -1,0 +1,24 @@
+name: sudoku-solver-modern
+
+services:
+  backend:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      # Live-reload dev loop: edits under src/ take effect immediately
+      # (uvicorn --reload, see Dockerfile) without an image rebuild.
+      - ./src:/app/src
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    environment:
+      # Compose's embedded DNS resolves the "backend" service name.
+      API_PROXY_TARGET: http://backend:8000
+    volumes:
+      - ./frontend:/app
+      # Anonymous volume so the container's own Linux-native node_modules
+      # (installed at image build time) isn't shadowed by the host's.
+      - /app/node_modules
