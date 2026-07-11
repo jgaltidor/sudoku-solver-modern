@@ -1,0 +1,182 @@
+
+
+.root-box {
+  width          : 700px;
+  height         : 480px;
+  margin         : 10px;
+  padding        : 15px 25px 15px 25px;
+  float          : left;
+  border-radius  : 10px;
+  border-style   : solid;
+}
+
+.blue-box {
+  background-color: #194972;
+}
+
+.pageHeaderTitle {
+  float        : left;
+  width        : 75%;
+  height       : 20pt;
+  line-height  : 20pt;
+  font-size    : 24pt;
+  font-weight  : bold;
+  color        : white;
+  text-align   : center;
+  margin       : 10px;
+}
+
+.mainContent {
+  margin: 10pt;
+}
+
+.grid {
+  float: left;
+  display: inline-block;
+}
+
+.gridCell {
+  width          : 39px;
+  height         : 39px;
+  padding        : 0px;
+  margin-right   : 1px;
+  margin-bottom  : 1px;
+  display        : inline-block;
+  float          : left;
+  border-width   : 0px;
+}
+
+
+.gridLabel {
+  font-size        : 10pt;
+  font-weight      : bold;
+  text-decoration  : none;
+  text-align       : center;
+  color            : white;
+}
+
+.gridColumnLabel {
+  height : 20px;
+  text-align: center;
+} 
+
+.gridRowLabel {
+  text-align    : right;
+  line-height   : 39px;
+  margin-right  : 8px;
+  width         : 37px;
+}
+
+.inputcell {
+  background-color  : white;
+  font-size         : 28px;
+  text-align        : center;
+  font-weight       : bold;
+  color             : red;
+}
+
+.computedcell {
+  color         : green;
+}
+
+.gridColumnSeparator {
+  width    : 2px;
+  height   : 1px;
+  display  : inline-block;
+  float    : left;
+}
+
+.gridRowSeparator {
+  height: 2px;
+}
+
+.gridRowLargeSeparator {
+  height: 3px;
+}
+
+.bl {
+  border-left-width: 3px;
+}
+.cl {
+  border-left-width: 1px;
+}
+.br {
+  border-right-width: 3px;
+}
+.cr {
+  border-right-width: 1px;
+}
+.bt {
+  border-top-width: 3px;
+}
+.ct {
+  border-top-width: 1px;
+}
+.bb {
+  border-bottom-width: 3px;
+}
+.cb {
+  border-bottom-width: 1px;
+}
+
+.buttonsContainer {
+  display     : block;
+  margin-top  : 10px;
+}
+
+.button {
+  margin-top          : 4px;
+  margin-bottom       : 4px;
+  margin-right        : 3px;
+  margin-left         : 16px;
+  width               : 110px;
+  height              : 26px;
+  font-weight         : bold;
+  border              : 0;
+  color               : #000;
+  background          : lightgray;
+  font-size           : 20px;
+  line-height         : 26px;
+  text-shadow         : none;
+  text-align          : center;
+  border              : 1px outset white;
+  float               : left;
+  margin-right        : 5px !important;
+  margin-bottom       : 5px !important;
+  -webkit-box-shadow  : 0 0 1px #000;
+  -moz-box-shadow     : 0 0 1px #000;
+  box-shadow          : 0 0 1px #000;
+}
+
+.rounded {
+  -moz-border-radius     : 5px;
+  -webkit-border-radius  : 5px;
+  border-radius          : 5px;
+}
+
+#buttonAreaLegend {
+  font-size : 20px;
+}
+
+.message-box {
+  box-shadow          : none;
+  border              : none;
+  background-color    : #194972;
+  color               : orangered;
+  margin-left         : 20px;
+  height              : 40px;
+  line-height         : 40px;
+  font-size           : 24px;
+  width               : 150px;
+  height              : 40px;
+}
+
+.left-box {
+  float  : left;
+}
+
+.right-box {
+  float            : right;
+}
+
+
