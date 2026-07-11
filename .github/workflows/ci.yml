@@ -55,3 +55,11 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Build images
+        run: docker compose build

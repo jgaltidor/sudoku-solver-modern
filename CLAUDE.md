@@ -49,9 +49,10 @@ docker compose up --build   # backend :8000, frontend :3000, bind-mounted source
 scripts/publish.sh          # push the built images to Docker Hub (docker login + docker compose build first)
 ```
 
-CI (`.github/workflows/ci.yml`) runs two jobs on push/PR: `test` (`uv sync --extra dev`, `pytest`,
-`ruff check`, `ruff format --check`) and `frontend` (`npm ci`, `eslint`, `prettier --check`, `vite
-build`). There is still no frontend *test* suite — `frontend` only lints/formats/builds.
+CI (`.github/workflows/ci.yml`) runs three jobs on push/PR: `test` (`uv sync --extra dev`, `pytest`,
+`ruff check`, `ruff format --check`), `frontend` (`npm ci`, `eslint`, `prettier --check`, `vite build`),
+and `docker-build` (`docker compose build`, to catch a broken `Dockerfile`/`docker-compose.yml` before
+it reaches a real build). There is still no frontend *test* suite — `frontend` only lints/formats/builds.
 
 ## Architecture
 

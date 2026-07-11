@@ -120,8 +120,9 @@ npm run lint           # eslint
 npm run format:check   # prettier --check; npm run format to auto-fix
 ```
 
-`.github/workflows/ci.yml` runs all of these (plus `pytest` and `npm run build`) on every push/PR.
-There's still no frontend *test* suite, just linting/formatting/build.
+`.github/workflows/ci.yml` runs all of these (plus `pytest`, `npm run build`, and `docker compose build`
+to catch a broken `Dockerfile`/`docker-compose.yml`) on every push/PR. There's still no frontend *test*
+suite, just linting/formatting/build.
 
 ## CLI
 
