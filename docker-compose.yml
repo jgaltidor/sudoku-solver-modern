@@ -3,6 +3,10 @@ name: sudoku-solver-modern
 services:
   backend:
     build: .
+    # Distinct from the old repo's jgaltidor/sudoku-solver-backend -- this is
+    # an independent image, not a new tag of that one. Lets scripts/publish.sh
+    # push a build here via `docker compose push`.
+    image: jgaltidor/sudoku-solver-modern-backend:latest
     ports:
       - "8000:8000"
     volumes:
@@ -12,6 +16,7 @@ services:
 
   frontend:
     build: ./frontend
+    image: jgaltidor/sudoku-solver-modern-frontend:latest
     ports:
       - "3000:3000"
     environment:

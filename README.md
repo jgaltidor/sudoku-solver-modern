@@ -22,6 +22,7 @@ frontend/      # React + Vite UI (copied from the old repo, re-wired to this bac
 scripts/
   solver.py         # CLI: solve one board from a JSON file, without the HTTP API
   example_solve.py  # worked example invocation of scripts/solver.py
+  publish.sh        # push the built backend/frontend images to Docker Hub
 example_inputs/
   solve_input_example.json  # sample board used by scripts/example_solve.py
 tests/
@@ -47,6 +48,10 @@ Both services bind-mount their own source (`src/`, `frontend/`) for a live-reloa
 `uvicorn --reload` picks up backend changes immediately; Vite's dev server does the same for the
 frontend. No rebuild needed for source edits; rebuild (`docker compose build`) only for dependency
 changes (`pyproject.toml`, `frontend/package.json`).
+
+`docker-compose.yml` tags both images (`jgaltidor/sudoku-solver-modern-backend`/`-frontend`) for Docker
+Hub. After `docker login` and a `docker compose build`, `scripts/publish.sh` pushes them -- mirrors the
+old repo's `docker/publish.sh`, just relocated next to this repo's other CLI scripts.
 
 ### Devcontainer
 

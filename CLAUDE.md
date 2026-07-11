@@ -42,6 +42,7 @@ npm run build
 Both together via Docker:
 ```bash
 docker compose up --build   # backend :8000, frontend :3000, bind-mounted source for live reload
+scripts/publish.sh          # push the built images to Docker Hub (docker login + docker compose build first)
 ```
 
 CI (`.github/workflows/ci.yml`) only runs the Python test suite (`pip install -e '.[dev]'` then
@@ -58,6 +59,7 @@ frontend/      # React + Vite UI, copied from the old repo and re-wired to this 
 scripts/
   solver.py         # CLI: solve one board from a JSON file, without the HTTP API
   example_solve.py  # worked example invocation of scripts/solver.py
+  publish.sh        # push the built backend/frontend images to Docker Hub
 example_inputs/
   solve_input_example.json  # sample board used by scripts/example_solve.py
 tests/
