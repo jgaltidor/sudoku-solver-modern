@@ -80,6 +80,7 @@ frontend/      # React + Vite UI (copied from the old repo, re-wired to this bac
   src/index.test.jsx  # drives the mounted app through its own UI, fetch mocked (vitest)
 scripts/
   run.sh            # launch backend + frontend as native processes (devcontainer dev loop)
+  dev-run.sh        # restart the Docker Compose containers without rebuilding (host terminal only)
   solver.py         # CLI: solve one board from a JSON file, without the HTTP API
   solver.sh         # convenience wrapper: `uv run scripts/solver.py`, args forwarded as-is
   example_solve.py  # worked example invocation of scripts/solver.py
@@ -115,6 +116,11 @@ Both services bind-mount their own source (`src/`, `frontend/`) for a live-reloa
 `uvicorn --reload` picks up backend changes immediately; Vite's dev server does the same for the
 frontend. No rebuild needed for source edits; rebuild (`docker compose build`) only for dependency
 changes (`pyproject.toml`, `frontend/package.json`).
+
+After that first `--build`, `scripts/dev-run.sh` (`docker compose up -d`, no rebuild) is a faster way to
+restart both containers -- source edits don't need it either, since they already reload live; use
+`docker compose build` (or `docker compose up --build` again) by hand first for a dependency/Dockerfile
+change, since this script deliberately doesn't rebuild on its own.
 
 `docker-compose.yml` tags both images (`jgaltidor/sudoku-solver-modern-backend`/`-frontend`) for Docker
 Hub. After `docker login` and a `docker compose build`, `scripts/publish.sh` pushes them -- mirrors the

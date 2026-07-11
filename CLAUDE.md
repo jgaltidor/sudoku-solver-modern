@@ -57,6 +57,7 @@ npm run format:check  # prettier --check (matches CI); npm run format to auto-fi
 Both together via Docker:
 ```bash
 docker compose up --build   # backend :8000, frontend :3000, bind-mounted source for live reload
+scripts/dev-run.sh          # restart both containers after that, without rebuilding
 scripts/publish.sh          # push the built images to Docker Hub (docker login + docker compose build first)
 ```
 
@@ -75,6 +76,7 @@ src/sudoku_solver/
 frontend/      # React + Vite UI, copied from the old repo and re-wired to this backend's API shape
 scripts/
   run.sh            # launch backend + frontend as native processes (devcontainer dev loop)
+  dev-run.sh        # restart the Docker Compose containers without rebuilding (host terminal only)
   solver.py         # CLI: solve one board from a JSON file, without the HTTP API
   solver.sh         # convenience wrapper: `uv run scripts/solver.py`, args forwarded as-is
   example_solve.py  # worked example invocation of scripts/solver.py
@@ -122,7 +124,8 @@ Key points:
   exists specifically as the devcontainer-native equivalent (`uv run uvicorn --reload` + `npm start` as
   plain processes, no bind mount involved); reach for plain `docker compose up --build` from a host
   terminal instead if the Docker path specifically is what's needed (e.g. testing the `Dockerfile`s
-  themselves).
+  themselves). Same restriction applies to `scripts/dev-run.sh` (it's just `docker compose up -d`) —
+  it's a host-terminal tool too, for the same reason.
 - **`frontend/`'s ESLint/Prettier config was added, and the existing (copied-from-the-old-repo) code
   reformatted to match**, in the same commit that wired both into CI — see `frontend/eslint.config.js`'s
   own comments for the deliberate rule overrides (old-style class components, no PropTypes). `vite.config.js`
