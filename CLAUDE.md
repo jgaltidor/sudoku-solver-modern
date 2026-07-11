@@ -14,6 +14,14 @@ of shelling out per request).
 
 ## Commands
 
+Devcontainer, both services at once (from repo root):
+```bash
+scripts/run.sh   # backend :8000 + frontend :3000 as native processes, Ctrl+C stops both
+```
+This is the devcontainer's equivalent of `docker compose up --build` — that command does *not* work
+from inside the devcontainer's own terminal (see `scripts/run.sh`'s header comment and CLAUDE.md's Key
+points below for why); `scripts/run.sh` is what to reach for there instead.
+
 Backend (from repo root; [uv](https://docs.astral.sh/uv/) manages `.venv` and `uv.lock` — no manual
 `pip`/`venv` steps, and `uv run` finds the venv itself without activating it):
 ```bash
@@ -64,6 +72,7 @@ src/sudoku_solver/
   api.py       # FastAPI app: POST /solve, GET /health
 frontend/      # React + Vite UI, copied from the old repo and re-wired to this backend's API shape
 scripts/
+  run.sh            # launch backend + frontend as native processes (devcontainer dev loop)
   solver.py         # CLI: solve one board from a JSON file, without the HTTP API
   example_solve.py  # worked example invocation of scripts/solver.py
   publish.sh        # push the built backend/frontend images to Docker Hub
@@ -101,6 +110,16 @@ Key points:
 - **`docker-compose.yml`'s `frontend` waits on `backend`'s `HEALTHCHECK`** (`condition:
   service_healthy`, not just container-started) before starting, since Vite's dev server proxies
   `/solve`/`/health` straight to it.
+- **`docker compose up --build` doesn't work from inside the devcontainer's own terminal** — its
+  `docker-outside-of-docker` feature bind-mounts `docker.sock` so the CLI works, but the daemon on the
+  other end of that socket is the *host's*, not the devcontainer's. Compose's `./src:/app/src`-style
+  bind mounts get resolved against the devcontainer's own filesystem path (`/workspaces/...`) before
+  being sent over that socket, and the host daemon has no such path — surfacing as a "mounts denied"
+  file-sharing error (Docker Desktop) or an outright missing-path error (Docker Engine). `scripts/run.sh`
+  exists specifically as the devcontainer-native equivalent (`uv run uvicorn --reload` + `npm start` as
+  plain processes, no bind mount involved); reach for plain `docker compose up --build` from a host
+  terminal instead if the Docker path specifically is what's needed (e.g. testing the `Dockerfile`s
+  themselves).
 - **`frontend/`'s ESLint/Prettier config was added, and the existing (copied-from-the-old-repo) code
   reformatted to match**, in the same commit that wired both into CI — see `frontend/eslint.config.js`'s
   own comments for the deliberate rule overrides (old-style class components, no PropTypes). `vite.config.js`

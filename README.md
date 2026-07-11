@@ -16,8 +16,12 @@ completely independent of the old one -- no shared code, build system, or git hi
 
 ## Getting started
 
+There are two ways to get a running app, depending on where you're starting from:
+
+### Docker Desktop, no editing (fastest)
+
 Prerequisites: git, and [Docker Desktop](https://www.docker.com/products/docker-desktop/) (or Docker
-Engine + the Compose plugin) -- that's everything the steps below need.
+Engine + the Compose plugin).
 
 1. Clone the repo:
 
@@ -37,10 +41,29 @@ Engine + the Compose plugin) -- that's everything the steps below need.
    - Frontend: http://localhost:3000
    - Backend health check: http://localhost:8000/health
 
-That's the fastest path to a running app. From here:
+Run this from a regular host terminal, not a VS Code devcontainer terminal -- see the note in
+[Devcontainer](#devcontainer) below for why that combination doesn't work.
 
-- Editing without Docker (VS Code devcontainer, or a plain local Python/Node setup) -- see
-  [Devcontainer](#devcontainer) / [Local, no Docker](#local-no-docker) below.
+### VS Code devcontainer (for editing)
+
+Prerequisites: git, VS Code with the
+[Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers),
+and Docker Desktop/Engine (only to build the devcontainer itself).
+
+1. Clone the repo and open it in VS Code, then "Reopen in Container" when prompted (or run the
+   "Dev Containers: Reopen in Container" command). This installs Python + Node deps automatically.
+2. Launch both services:
+
+   ```bash
+   scripts/run.sh
+   ```
+
+3. Open the app the same way: http://localhost:3000 / http://localhost:8000/health. Ctrl+C stops both.
+
+See [Devcontainer](#devcontainer) below for the full edit/build/run/test loop from here.
+
+Either path gets you a running app. From here:
+
 - Running the test suite -- see [Testing](#testing) below (needs [uv](https://docs.astral.sh/uv/),
   separately from the Docker path above).
 - Every other command in this README -- see [Running it](#running-it) for the full reference.
@@ -56,6 +79,7 @@ frontend/      # React + Vite UI (copied from the old repo, re-wired to this bac
   eslint.config.js, .prettierrc.json  # lint/format rules (added on top of the copied code)
   src/index.test.jsx  # drives the mounted app through its own UI, fetch mocked (vitest)
 scripts/
+  run.sh            # launch backend + frontend as native processes (devcontainer dev loop)
   solver.py         # CLI: solve one board from a JSON file, without the HTTP API
   example_solve.py  # worked example invocation of scripts/solver.py
   publish.sh        # push the built backend/frontend images to Docker Hub
@@ -100,11 +124,36 @@ old repo's `docker/publish.sh`, just relocated next to this repo's other CLI scr
 Open this repo in VS Code and reopen in the container (`.devcontainer/devcontainer.json`) for a full-stack
 dev environment: Python (package + dev deps installed via `uv`), Node (via the `node` feature, so
 `frontend/`'s npm deps are installed too), and the Docker CLI (via `docker-outside-of-docker`, wired up
-against the host's own Docker daemon). From its integrated terminal you can edit, build, and run
-everything -- `uv run uvicorn sudoku_solver.api:app --reload`, `npm start --prefix frontend`, and
-`docker compose up --build` all work directly, no separate host terminal needed. (Unlike the old repo's
-devcontainer, no manual static-binary/glibc-shim workarounds were needed for any of this -- this image's
-Debian 13 base has none of xenial's compatibility constraints.)
+against the host's own Docker daemon). (Unlike the old repo's devcontainer, no manual
+static-binary/glibc-shim workarounds were needed for any of this -- this image's Debian 13 base has none
+of xenial's compatibility constraints.)
+
+**Run:**
+
+```bash
+scripts/run.sh
+```
+
+runs the backend (`uv run uvicorn sudoku_solver.api:app --reload`) and frontend (`npm start --prefix
+frontend`) as native processes side by side, forwarded the same way as [Getting
+started](#vs-code-devcontainer-for-editing): http://localhost:3000 / http://localhost:8000/health.
+Ctrl+C stops both. `docker compose up --build` does *not* work from inside the devcontainer's own
+terminal -- its `docker-outside-of-docker` feature sends compose's bind mounts (`./src:/app/src`) to the
+*host's* Docker daemon, which resolves them against the devcontainer's own filesystem path
+(`/workspaces/...`), not a real path on the host, and refuses with a "mounts denied"/file-sharing error.
+Run `docker compose` from a plain host terminal instead if you specifically need the Docker path; for
+day-to-day editing, `scripts/run.sh` is the one that works here and is also faster (no image build/proxy
+hop).
+
+**Edit:** source under `src/` and `frontend/` is the same checkout VS Code has open -- no bind mount or
+rebuild step, changes take effect on save (`uvicorn --reload`, Vite HMR).
+
+**Build:** `docker compose build` works fine from the devcontainer -- unlike `up`, `build` never touches
+a bind mount, so the host-daemon path mismatch above doesn't apply to it. `npm run build --prefix
+frontend` produces just the frontend's static production bundle without touching Docker at all.
+
+**Test / lint:** see [Testing](#testing) and [Linting and formatting](#linting-and-formatting) below --
+both run identically in the devcontainer, no Docker involved.
 
 Its `.venv` lives at `/home/vscode/.venv` (`UV_PROJECT_ENVIRONMENT`), not the default `./.venv` --
 that default would land inside this bind-mounted workspace and collide with a host checkout's own
