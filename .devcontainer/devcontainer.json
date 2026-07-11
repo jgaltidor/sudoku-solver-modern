@@ -82,7 +82,16 @@
 
   // Installs this project (editable) plus its dev extras (pytest, httpx2)
   // from uv.lock, and frontend/'s npm deps, so both are immediately runnable.
-  "postCreateCommand": "uv sync --extra dev && npm install --prefix frontend",
+  //
+  // The chown fixes a real bug hit in practice: Docker creates a fresh named
+  // volume's mountpoint owned by root:root, but remoteUser here is vscode
+  // (uid 1000, not in the root group) -- so without this, `claude /login`
+  // inside the container would appear to complete in the browser but silently
+  // fail to write its credentials file into the (root-owned, read-only-to-
+  // vscode) mounts entry below, surfacing later as "Failed to retrieve auth
+  // status after login". Runs once per container creation (idempotent, so
+  // harmless on rebuilds against an already-fixed volume too).
+  "postCreateCommand": "sudo chown -R vscode:vscode /home/vscode/.claude && uv sync --extra dev && npm install --prefix frontend",
 
   // containerEnv, not remoteEnv: remoteEnv is only injected into sessions VS
   // Code itself starts (its integrated terminal, postCreateCommand, tasks) --
