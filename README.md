@@ -3,7 +3,7 @@
 [![CI](https://github.com/jgaltidor/sudoku-solver-modern/actions/workflows/ci.yml/badge.svg)](https://github.com/jgaltidor/sudoku-solver-modern/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-A modern rewrite of [`sudoku_solver_service_inez`](../sudoku_solver_service_inez): same idea (a
+A modern rewrite of [`sudoku_solver_service_inez`](https://github.com/jgaltidor/sudoku_solver_service_inez): same idea (a
 Sudoku-solving web service with a React frontend), rebuilt on a much simpler stack. This repo is
 completely independent of the old one -- no shared code, build system, or git history.
 
