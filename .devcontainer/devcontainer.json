@@ -17,8 +17,16 @@
     // daemon (bind-mounts docker.sock, handles the non-root group
     // membership itself) -- lets `docker compose up`/`build` run from this
     // same terminal too, for testing the actual Dockerfiles/compose setup
-    // rather than just the raw source.
-    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
+    // rather than just the raw source. moby:false because this feature's
+    // default (moby:true) installs Microsoft's "moby" packages, which
+    // aren't published for Debian trixie ("moby-cli and related system
+    // packages are not available in that distribution" -- confirmed by
+    // actually trying to build this devcontainer); moby:false falls back
+    // to the official Docker Engine apt repo instead, which does support
+    // trixie.
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+      "moby": false
+    }
   },
 
   // One extension per tool this repo actually uses:
