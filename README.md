@@ -59,6 +59,12 @@ all work directly, no separate host terminal needed. (Unlike the old repo's devc
 static-binary/glibc-shim workarounds were needed for any of this -- this image's Debian 13 base has none
 of xenial's compatibility constraints.)
 
+The `claude` CLI is also available in the container (via the `claude-code` feature -- your host's own
+`claude` binary won't run here, it's a macOS build). Its config/memory lives in a container-local named
+volume, not your host's `~/.claude`, so the first run needs its own login: either sign in interactively,
+or set `CLAUDE_CODE_OAUTH_TOKEN`/`ANTHROPIC_API_KEY` in your host shell before reopening the container
+(run `claude setup-token` on the host to mint one) so it's picked up automatically instead.
+
 ### Local, no Docker
 
 ```bash

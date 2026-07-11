@@ -26,7 +26,11 @@
     // trixie.
     "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
       "moby": false
-    }
+    },
+    // Installs the claude CLI itself (Linux build -- the host's ~/.local/bin/claude
+    // is a macOS binary and can't run in this container). Anthropic's own
+    // feature, so it tracks new releases without a manual install script here.
+    "ghcr.io/anthropics/devcontainer-features/claude-code:1.0": {}
   },
 
   // One extension per tool this repo actually uses:
@@ -55,8 +59,23 @@
   "postCreateCommand": "pip install --upgrade pip && pip install -e '.[dev]' && npm install --prefix frontend",
 
   "remoteEnv": {
-    "PATH": "/home/vscode/.local/bin:${containerEnv:PATH}"
+    "PATH": "/home/vscode/.local/bin:${containerEnv:PATH}",
+    // Lets a first `claude` run in the container skip interactive login,
+    // if the host shell has one of these set (empty/unset on the host is
+    // fine -- VS Code substitutes an empty string, not an error). Get a
+    // token via `claude setup-token` on the host; the macOS Keychain entry
+    // the host CLI actually uses can't be read from inside this container.
+    "CLAUDE_CODE_OAUTH_TOKEN": "${localEnv:CLAUDE_CODE_OAUTH_TOKEN}",
+    "ANTHROPIC_API_KEY": "${localEnv:ANTHROPIC_API_KEY}"
   },
+
+  // Named volume (not a host bind mount) for the container's own ~/.claude --
+  // keeps this container's Claude Code settings/memory/auth stable across
+  // rebuilds, without live-sharing (and racing with) the host's actual
+  // ~/.claude, which a real host machine also has open at the same time.
+  "mounts": [
+    "source=claude-code-config-sudoku-solver-modern,target=/home/vscode/.claude,type=volume"
+  ],
 
   // uvicorn's default port, and Vite's dev server port
   "forwardPorts": [8000, 3000],
