@@ -3,7 +3,8 @@
 [![CI](https://github.com/jgaltidor/sudoku-solver-modern/actions/workflows/ci.yml/badge.svg)](https://github.com/jgaltidor/sudoku-solver-modern/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-A Sudoku-solving web service with a Python/FastAPI backend and a React frontend.
+A Sudoku-solving web service with a Python/FastAPI backend (using Google OR-Tools' CP-SAT solver) and a
+React frontend.
 
 ## Getting started
 
