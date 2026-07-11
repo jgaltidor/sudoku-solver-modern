@@ -288,10 +288,10 @@ class Game extends React.Component
     let inputBoardJSON = this.jsonOfBoard();
     let inputBoardStr = JSON.stringify(inputBoardJSON);
     fetch(
-      '/api/sudoku',
+      '/solve',
       {
         method  : 'post',
-        headers : { 'Content-Type': 'text/plain' },
+        headers : { 'Content-Type': 'application/json' },
         body: inputBoardStr
       }
     )

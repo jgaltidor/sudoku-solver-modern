@@ -15,10 +15,13 @@ export default defineConfig({
     proxy: {
       // This file runs under Node at dev-server startup, not in the browser
       // bundle, so the VITE_ env prefix requirement (for import.meta.env)
-      // doesn't apply here. docker-compose sets API_PROXY_TARGET to the
+      // doesn't apply here. docker-compose would set API_PROXY_TARGET to the
       // backend service's compose DNS name; plain local `npm start` outside
-      // Docker falls back to localhost.
-      '/api': process.env.API_PROXY_TARGET || 'http://localhost:8080',
+      // Docker falls back to localhost. Proxies the FastAPI backend's actual
+      // route names directly (no /api prefix -- there's no separate "API
+      // namespace" here, just the backend's own /solve and /health routes).
+      '/solve': process.env.API_PROXY_TARGET || 'http://localhost:8000',
+      '/health': process.env.API_PROXY_TARGET || 'http://localhost:8000',
     },
   },
 });
