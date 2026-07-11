@@ -1,4 +1,4 @@
-# sudoku-solver-modern
+# Modern Sudoku Solver Web Service
 
 [![CI](https://github.com/jgaltidor/sudoku-solver-modern/actions/workflows/ci.yml/badge.svg)](https://github.com/jgaltidor/sudoku-solver-modern/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
