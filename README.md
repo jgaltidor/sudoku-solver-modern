@@ -54,6 +54,7 @@ src/sudoku_solver/
   api.py       # FastAPI app: POST /solve, GET /health
 frontend/      # React + Vite UI (copied from the old repo, re-wired to this backend)
   eslint.config.js, .prettierrc.json  # lint/format rules (added on top of the copied code)
+  src/index.test.jsx  # drives the mounted app through its own UI, fetch mocked (vitest)
 scripts/
   solver.py         # CLI: solve one board from a JSON file, without the HTTP API
   example_solve.py  # worked example invocation of scripts/solver.py
@@ -141,6 +142,15 @@ uv run pytest tests/
 rows/columns, not 3x3 boxes). `test_solver.py` exercises the OR-Tools solver directly; `test_api.py` runs
 the same cases through the FastAPI layer, plus a couple of request-validation checks.
 
+```bash
+cd frontend
+npm run test
+```
+
+`src/index.test.jsx` drives the actual mounted app through its own UI (Solve/Clear buttons, cell
+inputs) with `fetch` mocked, rather than testing an exported component in isolation -- `index.jsx`
+doesn't export one, it just mounts itself into `#root` as an import-time side effect.
+
 ## Linting and formatting
 
 ```bash
@@ -154,9 +164,8 @@ npm run lint           # eslint
 npm run format:check   # prettier --check; npm run format to auto-fix
 ```
 
-`.github/workflows/ci.yml` runs all of these (plus `pytest`, `npm run build`, and `docker compose build`
-to catch a broken `Dockerfile`/`docker-compose.yml`) on every push/PR. There's still no frontend *test*
-suite, just linting/formatting/build.
+`.github/workflows/ci.yml` runs all of these (plus `pytest`, `npm run test`, `npm run build`, and
+`docker compose build` to catch a broken `Dockerfile`/`docker-compose.yml`) on every push/PR.
 
 ## CLI
 

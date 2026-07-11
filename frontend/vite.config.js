@@ -24,4 +24,8 @@ export default defineConfig({
       '/health': process.env.API_PROXY_TARGET || 'http://localhost:8000',
     },
   },
+  test: {
+    environment: 'jsdom',
+    setupFiles: ['./src/setupTests.js'],
+  },
 });

@@ -39,6 +39,7 @@ Frontend (from `frontend/`):
 npm install
 npm start            # vite dev server on :3000
 npm run build
+npm run test          # vitest (matches CI)
 npm run lint          # eslint (matches CI)
 npm run format:check  # prettier --check (matches CI); npm run format to auto-fix
 ```
@@ -50,9 +51,9 @@ scripts/publish.sh          # push the built images to Docker Hub (docker login 
 ```
 
 CI (`.github/workflows/ci.yml`) runs three jobs on push/PR: `test` (`uv sync --extra dev`, `pytest`,
-`ruff check`, `ruff format --check`), `frontend` (`npm ci`, `eslint`, `prettier --check`, `vite build`),
-and `docker-build` (`docker compose build`, to catch a broken `Dockerfile`/`docker-compose.yml` before
-it reaches a real build). There is still no frontend *test* suite — `frontend` only lints/formats/builds.
+`ruff check`, `ruff format --check`), `frontend` (`npm ci`, `vitest`, `eslint`, `prettier --check`, `vite
+build`), and `docker-build` (`docker compose build`, to catch a broken `Dockerfile`/`docker-compose.yml`
+before it reaches a real build).
 
 ## Architecture
 
@@ -105,6 +106,13 @@ Key points:
   own comments for the deliberate rule overrides (old-style class components, no PropTypes). `vite.config.js`
   needs `globals.node` specifically, not `globals.browser`, since it runs at dev-server startup under
   Node, not in the bundled browser code.
+- **`src/index.jsx` has no exported component** — it mounts itself into `#root` as an import-time
+  side effect (`createRoot(...).render(<Game />)` at module scope), so `index.test.jsx` imports it once
+  in `beforeAll` (wrapped in `act()`, since React 18's `createRoot().render()` schedules rather than
+  flushes synchronously — omitting that left `#root` empty when the first test's assertions ran) and
+  drives the single mounted instance through its own UI for every test after that, rather than
+  rendering a fresh tree per test. `setupTests.js` also sets `IS_REACT_ACT_ENVIRONMENT = true`, since
+  React logs "not wrapped in act" warnings without it even when it is.
 - **The devcontainer's Node version is pinned to `20`**, matching `frontend/Dockerfile` and CI's
   `node-version` — it was previously `"lts"`, which floats (resolved to Node 24 when last checked) and
   had silently diverged from what Docker/CI actually run the app on.
