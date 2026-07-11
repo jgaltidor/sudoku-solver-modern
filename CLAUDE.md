@@ -105,3 +105,6 @@ Key points:
   own comments for the deliberate rule overrides (old-style class components, no PropTypes). `vite.config.js`
   needs `globals.node` specifically, not `globals.browser`, since it runs at dev-server startup under
   Node, not in the bundled browser code.
+- **The devcontainer's Node version is pinned to `20`**, matching `frontend/Dockerfile` and CI's
+  `node-version` — it was previously `"lts"`, which floats (resolved to Node 24 when last checked) and
+  had silently diverged from what Docker/CI actually run the app on.
