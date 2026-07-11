@@ -45,6 +45,9 @@
   //   for the Dockerfiles/docker-compose.yml this repo's docker-based workflow
   //   actually relies on
   // - tamasfe.even-better-toml: pyproject.toml editing/schema validation
+  // - dbaeumer.vscode-eslint / esbenp.prettier-vscode: installed ahead of
+  //   frontend/ actually having ESLint/Prettier config -- inert until then,
+  //   see CLAUDE.md's note that frontend/ currently has no lint/format step
   "customizations": {
     "vscode": {
       "extensions": [
@@ -54,7 +57,9 @@
         "anthropic.claude-code",
         "redhat.vscode-yaml",
         "ms-azuretools.vscode-containers",
-        "tamasfe.even-better-toml"
+        "tamasfe.even-better-toml",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode"
       ]
     }
   },
