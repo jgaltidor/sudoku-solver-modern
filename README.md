@@ -3,16 +3,7 @@
 [![CI](https://github.com/jgaltidor/sudoku-solver-modern/actions/workflows/ci.yml/badge.svg)](https://github.com/jgaltidor/sudoku-solver-modern/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-A modern rewrite of [`sudoku_solver_service_inez`](https://github.com/jgaltidor/sudoku_solver_service_inez): same idea (a
-Sudoku-solving web service with a React frontend), rebuilt on a much simpler stack. This repo is
-completely independent of the old one -- no shared code, build system, or git history.
-
-| | Old repo | This repo |
-|---|---|---|
-| Solver | OCaml, hand-written SMT/ILP constraints via [Inez](https://github.com/vasilisp/inez)/SCIP | Python, [OR-Tools](https://developers.google.com/optimization) CP-SAT, one `add_all_different` call per row/column/box |
-| Backend | Java, NanoHTTPD, shells out to a solver subprocess per request | Python, [FastAPI](https://fastapi.tiangolo.com/), calls the solver in-process |
-| Base image | `ubuntu:16.04` (camlp4-era OCaml/SCIP toolchain) | `python:3.12-slim` / `mcr.microsoft.com/devcontainers/python:3.12` |
-| Frontend | React + Vite | Same (copied, not shared) |
+A Sudoku-solving web service with a Python/FastAPI backend and a React frontend.
 
 ## Getting started
 
@@ -275,6 +266,19 @@ curl -X POST http://localhost:8000/solve \
 ```
 
 Returns `{"input_board": [...], "has_solution": true, "solved_board": [...]}`.
+
+## Comparison with the old repo
+
+A modern rewrite of [`sudoku_solver_service_inez`](https://github.com/jgaltidor/sudoku_solver_service_inez): same idea (a
+Sudoku-solving web service with a React frontend), rebuilt on a much simpler stack. This repo is
+completely independent of the old one -- no shared code, build system, or git history.
+
+| | Old repo | This repo |
+|---|---|---|
+| Solver | OCaml, hand-written SMT/ILP constraints via [Inez](https://github.com/vasilisp/inez)/SCIP | Python, [OR-Tools](https://developers.google.com/optimization) CP-SAT, one `add_all_different` call per row/column/box |
+| Backend | Java, NanoHTTPD, shells out to a solver subprocess per request | Python, [FastAPI](https://fastapi.tiangolo.com/), calls the solver in-process |
+| Base image | `ubuntu:16.04` (camlp4-era OCaml/SCIP toolchain) | `python:3.12-slim` / `mcr.microsoft.com/devcontainers/python:3.12` |
+| Frontend | React + Vite | Same (copied, not shared) |
 
 ## License
 
