@@ -37,8 +37,10 @@ uv run scripts/example_solve.py                      # worked example, solves ex
 Frontend (from `frontend/`):
 ```bash
 npm install
-npm start     # vite dev server on :3000
+npm start            # vite dev server on :3000
 npm run build
+npm run lint          # eslint (matches CI)
+npm run format:check  # prettier --check (matches CI); npm run format to auto-fix
 ```
 
 Both together via Docker:
@@ -47,8 +49,9 @@ docker compose up --build   # backend :8000, frontend :3000, bind-mounted source
 scripts/publish.sh          # push the built images to Docker Hub (docker login + docker compose build first)
 ```
 
-CI (`.github/workflows/ci.yml`) runs the Python test suite (`uv sync --extra dev`, `pytest`, `ruff check`,
-`ruff format --check`) on push/PR — there is no frontend build/lint/test step in CI.
+CI (`.github/workflows/ci.yml`) runs two jobs on push/PR: `test` (`uv sync --extra dev`, `pytest`,
+`ruff check`, `ruff format --check`) and `frontend` (`npm ci`, `eslint`, `prettier --check`, `vite
+build`). There is still no frontend *test* suite — `frontend` only lints/formats/builds.
 
 ## Architecture
 
@@ -96,3 +99,8 @@ Key points:
 - **`docker-compose.yml`'s `frontend` waits on `backend`'s `HEALTHCHECK`** (`condition:
   service_healthy`, not just container-started) before starting, since Vite's dev server proxies
   `/solve`/`/health` straight to it.
+- **`frontend/`'s ESLint/Prettier config was added, and the existing (copied-from-the-old-repo) code
+  reformatted to match**, in the same commit that wired both into CI — see `frontend/eslint.config.js`'s
+  own comments for the deliberate rule overrides (old-style class components, no PropTypes). `vite.config.js`
+  needs `globals.node` specifically, not `globals.browser`, since it runs at dev-server startup under
+  Node, not in the bundled browser code.

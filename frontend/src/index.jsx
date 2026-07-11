@@ -4,31 +4,29 @@ import './index.css';
 
 function ColumnLabel(props) {
   return (
-    <div className = "gridCell gridLabel gridColumnLabel border" >{props.label}</div>
+    <div className="gridCell gridLabel gridColumnLabel border">
+      {props.label}
+    </div>
   );
 }
 
 function SquareColumnSeparator() {
-  return (
-    <div className = "gridColumnSeparator" />
-  );
+  return <div className="gridColumnSeparator" />;
 }
 
 function RowLabel(props) {
   return (
-    <div className = "gridCell gridLabel gridRowLabel border" >{props.label}</div>
+    <div className="gridCell gridLabel gridRowLabel border">{props.label}</div>
   );
 }
 
 function RowSeparator() {
-  return (
-    <div style={{clear: 'both'}} />
-  );
+  return <div style={{ clear: 'both' }} />;
 }
 
 function TitleRow() {
   return (
-    <div className = "gridRow" >
+    <div className="gridRow">
       <ColumnLabel label="" />
       <ColumnLabel label="1" />
       <ColumnLabel label="2" />
@@ -45,14 +43,13 @@ function TitleRow() {
   );
 }
 
-class Cell extends React.Component
-{
+class Cell extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      row        : props.coordinate.row,
-      col        : props.coordinate.col,
-      game       : props.coordinate.game
+      row: props.coordinate.row,
+      col: props.coordinate.col,
+      game: props.coordinate.game,
     };
     this.handleChange = this.handleChange.bind(this);
   }
@@ -71,60 +68,57 @@ class Cell extends React.Component
   }
 
   render() {
-    let styleClasses = "gridCell inputcell";
-    if(this.isComputed()) {
-      styleClasses = styleClasses + " computedcell";
+    let styleClasses = 'gridCell inputcell';
+    if (this.isComputed()) {
+      styleClasses = styleClasses + ' computedcell';
     }
     return (
-      <input className  = {styleClasses}
-             type       = "text"
-             maxLength  = "1"
-             value      = {this.getValue()}
-             onChange   = {this.handleChange}>
-      </input>
+      <input
+        className={styleClasses}
+        type="text"
+        maxLength="1"
+        value={this.getValue()}
+        onChange={this.handleChange}
+      ></input>
     );
   }
 
   getValue() {
-    const row  = this.state.row;
-    const col  = this.state.col;
+    const row = this.state.row;
+    const col = this.state.col;
     const game = this.state.game;
     return game.getCellValue(row, col);
   }
 }
 
 function ColumnSeparator() {
-  return (
-    <div className = "gridColumnSeparator"></div>
-  );
+  return <div className="gridColumnSeparator"></div>;
 }
 
-
-class GridRow extends React.Component
-{
+class GridRow extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      rowlabel  : props.rowlabel,
-      row       : props.row,
-    }
+      rowlabel: props.rowlabel,
+      row: props.row,
+    };
   }
 
   render() {
     return (
-      <div className = "gridRow" >
-        <RowLabel label  = {this.state.rowlabel} />
-        <Cell coordinate = {this.state.row[0]} />
-        <Cell coordinate = {this.state.row[1]} />
-        <Cell coordinate = {this.state.row[2]} />
+      <div className="gridRow">
+        <RowLabel label={this.state.rowlabel} />
+        <Cell coordinate={this.state.row[0]} />
+        <Cell coordinate={this.state.row[1]} />
+        <Cell coordinate={this.state.row[2]} />
         <ColumnSeparator />
-        <Cell coordinate = {this.state.row[3]} />
-        <Cell coordinate = {this.state.row[4]} />
-        <Cell coordinate = {this.state.row[5]} />
+        <Cell coordinate={this.state.row[3]} />
+        <Cell coordinate={this.state.row[4]} />
+        <Cell coordinate={this.state.row[5]} />
         <ColumnSeparator />
-        <Cell coordinate = {this.state.row[6]} />
-        <Cell coordinate = {this.state.row[7]} />
-        <Cell coordinate = {this.state.row[8]} />
+        <Cell coordinate={this.state.row[6]} />
+        <Cell coordinate={this.state.row[7]} />
+        <Cell coordinate={this.state.row[8]} />
       </div>
     );
   }
@@ -134,18 +128,17 @@ function SquareRowSeparator() {
   return (
     <div>
       <RowSeparator />
-      <div className = "gridRowSeparator" />
+      <div className="gridRowSeparator" />
       <RowSeparator />
     </div>
   );
 }
 
-class Grid extends React.Component
-{
+class Grid extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      coordinates: props.coordinates
+      coordinates: props.coordinates,
     };
   }
 
@@ -170,12 +163,11 @@ class Grid extends React.Component
   }
 }
 
-class MessageArea extends React.Component
-{
+class MessageArea extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      game : props.game
+      game: props.game,
     };
   }
 
@@ -185,14 +177,12 @@ class MessageArea extends React.Component
 
   render() {
     return (
-      <div className="button rounded message-box"
-        >{this.getMessage()}</div>
+      <div className="button rounded message-box">{this.getMessage()}</div>
     );
   }
 }
 
-class Game extends React.Component
-{
+class Game extends React.Component {
   constructor(props) {
     super(props);
     const coordinates = this.createCellCoordinates();
@@ -200,18 +190,18 @@ class Game extends React.Component
     const message = this.getInitialMessage();
     const isComputedFlags = this.getInitialIsComputedFlags();
     this.state = {
-      coordinates      : coordinates,
-      values           : values,
-      isComputedFlags  : isComputedFlags,
-      message          : message
+      coordinates: coordinates,
+      values: values,
+      isComputedFlags: isComputedFlags,
+      message: message,
     };
   }
 
   createClearCellValues() {
     const values = new Array(9);
-    for(let i = 0; i < values.length; i++) {
+    for (let i = 0; i < values.length; i++) {
       values[i] = new Array(9);
-      for(let j = 0; j < values[i].length; j++) {
+      for (let j = 0; j < values[i].length; j++) {
         values[i][j] = '';
       }
     }
@@ -220,9 +210,9 @@ class Game extends React.Component
 
   createCellCoordinates() {
     const coordinates = new Array(9);
-    for(let i = 0; i < coordinates.length; i++) {
+    for (let i = 0; i < coordinates.length; i++) {
       coordinates[i] = new Array(9);
-      for(let j = 0; j < coordinates[i].length; j++) {
+      for (let j = 0; j < coordinates[i].length; j++) {
         coordinates[i][j] = this.createCellCoordinate(i, j);
       }
     }
@@ -231,9 +221,9 @@ class Game extends React.Component
 
   createCellCoordinate(row, col) {
     return {
-      row        : row,
-      col        : col,
-      game       : this
+      row: row,
+      col: col,
+      game: this,
     };
   }
 
@@ -243,9 +233,9 @@ class Game extends React.Component
 
   getInitialIsComputedFlags() {
     const flags = new Array(9);
-    for(let i = 0; i < flags.length; i++) {
+    for (let i = 0; i < flags.length; i++) {
       flags[i] = new Array(9);
-      for(let j = 0; j < flags[i].length; j++) {
+      for (let j = 0; j < flags[i].length; j++) {
         flags[i][j] = false;
       }
     }
@@ -254,9 +244,9 @@ class Game extends React.Component
 
   cloneValues() {
     const values = new Array(this.state.values.length);
-    for(let i = 0; i < values.length; i++) {
+    for (let i = 0; i < values.length; i++) {
       values[i] = new Array(this.state.values[i].length);
-      for(let j = 0; j < values[i].length; j++) {
+      for (let j = 0; j < values[i].length; j++) {
         values[i][j] = this.getCellValue(i, j);
       }
     }
@@ -268,10 +258,10 @@ class Game extends React.Component
     values[row][col] = value;
     const isComputedFlags = this.getInitialIsComputedFlags();
     this.setState({
-      values             : values,
-      isComputedFlags    : isComputedFlags,
-      coordinates        : this.state.coordinates,
-      message            : this.state.message
+      values: values,
+      isComputedFlags: isComputedFlags,
+      coordinates: this.state.coordinates,
+      message: this.state.message,
     });
   }
 
@@ -284,77 +274,74 @@ class Game extends React.Component
   }
 
   handleSolveClick() {
-    this.updateMessage("Solving...");
+    this.updateMessage('Solving...');
     let inputBoardJSON = this.jsonOfBoard();
     let inputBoardStr = JSON.stringify(inputBoardJSON);
-    fetch(
-      '/solve',
-      {
-        method  : 'post',
-        headers : { 'Content-Type': 'application/json' },
-        body: inputBoardStr
-      }
-    )
-    .then((response) => {
-      if(response.ok) {
-        return response.json();
-      } else {
-        throw new Error(response.statusText);
-      }
+    fetch('/solve', {
+      method: 'post',
+      headers: { 'Content-Type': 'application/json' },
+      body: inputBoardStr,
     })
-    .then((responseJson) => {
-      this.processSolverResponse(responseJson);
-    })
-    .catch((error) => {
-      console.error(error);
-    });
+      .then((response) => {
+        if (response.ok) {
+          return response.json();
+        } else {
+          throw new Error(response.statusText);
+        }
+      })
+      .then((responseJson) => {
+        this.processSolverResponse(responseJson);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
   }
 
   updateMessage(newMessage) {
     this.setState({
-      message         : newMessage,
-      values          : this.state.values,
-      isComputedFlags : this.state.isComputedFlags,
-      coordinates     : this.state.coordinates,
+      message: newMessage,
+      values: this.state.values,
+      isComputedFlags: this.state.isComputedFlags,
+      coordinates: this.state.coordinates,
     });
   }
 
   handleClearClick() {
-    const values    = this.createClearCellValues();
+    const values = this.createClearCellValues();
     const isComputedFlags = this.getInitialIsComputedFlags();
-    const message  = this.getInitialMessage();
+    const message = this.getInitialMessage();
     const coordinates = this.createCellCoordinates();
     this.setState({
-      values          : values,
-      isComputedFlags : isComputedFlags,
-      message         : message,
-      coordinates     : coordinates
+      values: values,
+      isComputedFlags: isComputedFlags,
+      message: message,
+      coordinates: coordinates,
     });
   }
 
   getCellNumber(row, col) {
     let value = this.getCellValue(row, col);
     let num = parseInt(value, 10);
-    if(num >= 1 && num <= 9) return num;
+    if (num >= 1 && num <= 9) return num;
     else return 0;
   }
 
   jsonOfBoard() {
-    let rows = new Array(this.state.values.length);;
-    for(let i = 0; i < rows.length; i++) {
+    let rows = new Array(this.state.values.length);
+    for (let i = 0; i < rows.length; i++) {
       rows[i] = new Array(this.state.values[i].length);
-      for(let j = 0; j < rows[i].length; j++) {
+      for (let j = 0; j < rows[i].length; j++) {
         rows[i][j] = this.getCellNumber(i, j);
       }
     }
-    return {'board': rows};
+    return { board: rows };
   }
 
   valuesOfNums(board_of_nums) {
-    let values = new Array(board_of_nums.length);;
-    for(let i = 0; i < values.length; i++) {
+    let values = new Array(board_of_nums.length);
+    for (let i = 0; i < values.length; i++) {
       values[i] = new Array(board_of_nums[i].length);
-      for(let j = 0; j < values[i].length; j++) {
+      for (let j = 0; j < values[i].length; j++) {
         values[i][j] = board_of_nums[i][j].toString();
       }
     }
@@ -363,13 +350,13 @@ class Game extends React.Component
 
   getNewIsComputedFlags(newValues) {
     const flags = new Array(9);
-    for(let i = 0; i < flags.length; i++) {
+    for (let i = 0; i < flags.length; i++) {
       flags[i] = new Array(9);
-      for(let j = 0; j < flags[i].length; j++) {
+      for (let j = 0; j < flags[i].length; j++) {
         let isComputed = null;
         let newValue = newValues[i][j];
         let oldValue = this.getCellValue(i, j);
-        if(newValue === oldValue) isComputed = false;
+        if (newValue === oldValue) isComputed = false;
         else isComputed = true;
         flags[i][j] = isComputed;
       }
@@ -381,20 +368,19 @@ class Game extends React.Component
     let message = null;
     let values = this.state.values;
     let isComputedFlags = this.state.isComputedFlags;
-    if(responseJson.has_solution) {
+    if (responseJson.has_solution) {
       let solution = responseJson.solved_board;
       message = 'Solution Found!';
       values = this.valuesOfNums(solution);
       isComputedFlags = this.getNewIsComputedFlags(values);
-    }
-    else {
-      message = 'No Solution Exists!'
+    } else {
+      message = 'No Solution Exists!';
     }
     this.setState({
-      values             : values,
-      isComputedFlags    : isComputedFlags,
-      message            : message,
-      coordinates        : this.state.coordinates
+      values: values,
+      isComputedFlags: isComputedFlags,
+      message: message,
+      coordinates: this.state.coordinates,
     });
   }
 
@@ -406,18 +392,18 @@ class Game extends React.Component
     return (
       <div className="root-box blue-box">
         <div className="pageHeaderTitle">Sudoku Solver</div>
-        <div style={{clear: 'both'}}></div>
+        <div style={{ clear: 'both' }}></div>
         <div className="mainContent">
           <div className="left-box">
             <Grid coordinates={this.state.coordinates} />
           </div>
           <div className="right-box">
             <ButtonArea
-              solveClick = {() => this.handleSolveClick()}
-              clearClick = {() => this.handleClearClick()}
+              solveClick={() => this.handleSolveClick()}
+              clearClick={() => this.handleClearClick()}
             />
-            <div style={{clear: 'both', height: '20px'}}></div>
-            <MessageArea game = {this} />
+            <div style={{ clear: 'both', height: '20px' }}></div>
+            <MessageArea game={this} />
           </div>
         </div>
       </div>
@@ -425,14 +411,13 @@ class Game extends React.Component
   }
 }
 
-class ButtonArea extends React.Component
-{
+class ButtonArea extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      solveClick : props.solveClick,
-      clearClick : props.clearClick
-    }
+      solveClick: props.solveClick,
+      clearClick: props.clearClick,
+    };
   }
 
   render() {
@@ -441,14 +426,18 @@ class ButtonArea extends React.Component
         <fieldset id="buttonArea">
           <legend id="buttonAreaLegend">Features</legend>
           <button
-            className = "button rounded"
-            onClick   = {() => this.state.solveClick()}
-            >Solve</button>
-          <div style ={{clear: 'both', height: '20px'}}></div>
+            className="button rounded"
+            onClick={() => this.state.solveClick()}
+          >
+            Solve
+          </button>
+          <div style={{ clear: 'both', height: '20px' }}></div>
           <button
-            className = "button rounded"
-            onClick   = {() => this.state.clearClick()}
-            >Clear</button>
+            className="button rounded"
+            onClick={() => this.state.clearClick()}
+          >
+            Clear
+          </button>
         </fieldset>
       </div>
     );

@@ -19,6 +19,7 @@ src/sudoku_solver/
   solver.py    # OR-Tools CP-SAT solver
   api.py       # FastAPI app: POST /solve, GET /health
 frontend/      # React + Vite UI (copied from the old repo, re-wired to this backend)
+  eslint.config.js, .prettierrc.json  # lint/format rules (added on top of the copied code)
 scripts/
   solver.py         # CLI: solve one board from a JSON file, without the HTTP API
   example_solve.py  # worked example invocation of scripts/solver.py
@@ -113,7 +114,14 @@ uv run ruff check .           # lint
 uv run ruff format --check .  # format check; drop --check to auto-fix
 ```
 
-`.github/workflows/ci.yml` runs both on every push/PR, alongside `pytest`.
+```bash
+cd frontend
+npm run lint           # eslint
+npm run format:check   # prettier --check; npm run format to auto-fix
+```
+
+`.github/workflows/ci.yml` runs all of these (plus `pytest` and `npm run build`) on every push/PR.
+There's still no frontend *test* suite, just linting/formatting/build.
 
 ## CLI
 
