@@ -9,11 +9,13 @@
   "features": {
     // Lets frontend/ (npm install, vite) run directly in this same
     // container -- no sibling frontend container needed just to edit/build
-    // the UI. Pinned to 20, matching frontend/Dockerfile and CI's
+    // the UI. Pinned to 26, matching frontend/Dockerfile and CI's
     // node-version -- "lts" floats (resolved to 24 when last checked), which
     // would silently diverge from what Docker/CI actually run the app on.
+    // (26 isn't yet an LTS release as of this writing; matching Dockerfile's
+    // Dependabot-proposed bump was a deliberate choice, not a default.)
     "ghcr.io/devcontainers/features/node:1": {
-      "version": "20"
+      "version": "26"
     },
     // Docker CLI + compose plugin, wired up against the host's own Docker
     // daemon (bind-mounts docker.sock, handles the non-root group

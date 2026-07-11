@@ -6,7 +6,7 @@
 # sudoku.cma was.
 FROM python:3.14-slim
 
-# Just for the HEALTHCHECK below -- python:3.12-slim has neither curl nor
+# Just for the HEALTHCHECK below -- python:3.14-slim has neither curl nor
 # wget by default.
 RUN apt-get update && apt-get install -y --no-install-recommends curl && \
     rm -rf /var/lib/apt/lists/*

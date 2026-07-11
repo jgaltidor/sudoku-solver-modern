@@ -113,6 +113,7 @@ Key points:
   drives the single mounted instance through its own UI for every test after that, rather than
   rendering a fresh tree per test. `setupTests.js` also sets `IS_REACT_ACT_ENVIRONMENT = true`, since
   React logs "not wrapped in act" warnings without it even when it is.
-- **The devcontainer's Node version is pinned to `20`**, matching `frontend/Dockerfile` and CI's
-  `node-version` — it was previously `"lts"`, which floats (resolved to Node 24 when last checked) and
-  had silently diverged from what Docker/CI actually run the app on.
+- **The devcontainer's Node version tracks `frontend/Dockerfile` and CI's `node-version` in lockstep**
+  (currently `26`) — it was originally `"lts"`, which floats and had silently diverged from Docker/CI's
+  pinned version; keep these three in sync by hand whenever one changes, since Dependabot's `docker`
+  ecosystem PR for `frontend/Dockerfile` only ever touches that one file, not the other two.
