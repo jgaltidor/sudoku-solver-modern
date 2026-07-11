@@ -1,0 +1,37 @@
+{
+  "name": "Sudoku Solver (modern)",
+  "image": "mcr.microsoft.com/devcontainers/python:3.12",
+
+  // One extension per tool this repo actually uses:
+  // - ms-python.python / ms-python.vscode-pylance: Python language support
+  // - charliermarsh.ruff: linting/formatting (pyproject.toml-configured below)
+  // - anthropic.claude-code: Claude Code's own VS Code extension
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "charliermarsh.ruff",
+        "anthropic.claude-code"
+      ]
+    }
+  },
+
+  // Installs this project (editable) plus its dev extras (pytest, httpx2)
+  // straight into the image's system Python -- no separate venv needed
+  // inside the container, since the container itself is already the
+  // isolated environment. Since we're not root, pip installs console
+  // scripts (pytest, uvicorn, etc.) to ~/.local/bin -- fine in an
+  // interactive terminal (this image's .bashrc already adds it to PATH),
+  // but remoteEnv below makes that explicit rather than relying on it.
+  "postCreateCommand": "pip install --upgrade pip && pip install -e '.[dev]'",
+
+  "remoteEnv": {
+    "PATH": "/home/vscode/.local/bin:${containerEnv:PATH}"
+  },
+
+  // uvicorn's default port for `uvicorn sudoku_solver.api:app`
+  "forwardPorts": [8000],
+
+  "remoteUser": "vscode"
+}
