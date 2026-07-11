@@ -8,9 +8,22 @@ React frontend.
 
 ## Getting started
 
-There are two ways to get a running app, depending on where you're starting from:
+There are three ways to get a running app, depending on where you're starting from:
 
-### Docker Desktop, no editing (fastest)
+### Docker Hub, no clone (fastest)
+
+Prerequisites: [Docker Desktop](https://www.docker.com/products/docker-desktop/) (or Docker Engine).
+
+```bash
+docker run -p 8000:8000 jgaltidor/sudoku-solver-modern:latest
+```
+
+Open http://localhost:8000. This is a single combined image (frontend's production build served
+directly by the backend, one process/port) -- no repo clone, no `docker-compose.yml`. See
+`Dockerfile.combined` in [DEVELOPMENT.md](DEVELOPMENT.md#docker-compose-host-machine) for how it differs
+from the two-image dev setup below.
+
+### Docker Desktop, no editing
 
 Prerequisites: git, and [Docker Desktop](https://www.docker.com/products/docker-desktop/) (or Docker
 Engine + the Compose plugin).
@@ -55,7 +68,7 @@ and Docker Desktop/Engine (only to build the devcontainer itself).
 See [Devcontainer](DEVELOPMENT.md#devcontainer) in DEVELOPMENT.md for the full edit/build/run/test loop
 from here.
 
-Either path gets you a running app. From here, see **[DEVELOPMENT.md](DEVELOPMENT.md)** for everything
+Any of these paths gets you a running app. From here, see **[DEVELOPMENT.md](DEVELOPMENT.md)** for everything
 else: directory layout, the full day-to-day dev loop (devcontainer, Docker Compose, or plain local),
 testing, linting/formatting, the CLI, and how this repo compares to the old one.
 
