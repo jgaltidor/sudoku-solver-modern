@@ -45,6 +45,9 @@ docker compose up --build
 - Backend: http://localhost:8000 (`GET /health`, `POST /solve`)
 - Frontend: http://localhost:3000
 
+The backend image has a `HEALTHCHECK` (`curl`-ing `/health`) baked in, so `docker ps`/`docker compose ps`
+show its actual up/down state, not just "container is running."
+
 Both services bind-mount their own source (`src/`, `frontend/`) for a live-reload dev loop --
 `uvicorn --reload` picks up backend changes immediately; Vite's dev server does the same for the
 frontend. No rebuild needed for source edits; rebuild (`docker compose build`) only for dependency

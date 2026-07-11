@@ -6,6 +6,11 @@
 # sudoku.cma was.
 FROM python:3.12-slim
 
+# Just for the HEALTHCHECK below -- python:3.12-slim has neither curl nor
+# wget by default.
+RUN apt-get update && apt-get install -y --no-install-recommends curl && \
+    rm -rf /var/lib/apt/lists/*
+
 # Official distroless uv image as a COPY source -- no curl/pip bootstrap
 # needed to get the uv binary itself.
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
@@ -31,5 +36,8 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 ENV PATH="/app/.venv/bin:$PATH"
 
 EXPOSE 8000
+
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s \
+    CMD curl -f http://localhost:8000/health || exit 1
 
 CMD ["uvicorn", "sudoku_solver.api:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
