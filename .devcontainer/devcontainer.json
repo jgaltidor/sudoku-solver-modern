@@ -130,7 +130,15 @@
     // token via `claude setup-token` on the host; the macOS Keychain entry
     // the host CLI actually uses can't be read from inside this container.
     "CLAUDE_CODE_OAUTH_TOKEN": "${localEnv:CLAUDE_CODE_OAUTH_TOKEN}",
-    "ANTHROPIC_API_KEY": "${localEnv:ANTHROPIC_API_KEY}"
+    "ANTHROPIC_API_KEY": "${localEnv:ANTHROPIC_API_KEY}",
+    // Lets `gh` (e.g. `gh pr create`, `gh run list`) work without an
+    // interactive `gh auth login` in every fresh container. Separate from
+    // plain `git push`/`fetch`, which already work via VS Code's own
+    // injected credential helper regardless of this var -- this is only for
+    // `gh` subcommands themselves. Create a token at
+    // github.com/settings/tokens and set GH_TOKEN in the host shell profile;
+    // never put it in a repo-tracked file.
+    "GH_TOKEN": "${localEnv:GH_TOKEN}"
   },
 
   // Named volume (not a host bind mount) for the container's own ~/.claude --
