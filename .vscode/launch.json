@@ -1,0 +1,35 @@
+{
+  // No hardcoded interpreter path here on purpose -- these use whatever
+  // Python interpreter is currently selected (host's own .venv, or the
+  // devcontainer's relocated /home/vscode/.venv, see .devcontainer/
+  // devcontainer.json's python.defaultInterpreterPath), so this file works
+  // unmodified in both contexts.
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Python: FastAPI (uvicorn)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "uvicorn",
+      "args": ["sudoku_solver.api:app", "--reload"],
+      "justMyCode": true
+    },
+    {
+      "name": "Python: Pytest (all tests)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pytest",
+      "args": ["tests/", "-v"],
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
+      "name": "Python: Current File",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${file}",
+      "console": "integratedTerminal",
+      "justMyCode": true
+    }
+  ]
+}

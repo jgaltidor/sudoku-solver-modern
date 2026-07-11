@@ -60,7 +60,19 @@
         "tamasfe.even-better-toml",
         "dbaeumer.vscode-eslint",
         "esbenp.prettier-vscode"
-      ]
+      ],
+      // customizations.vscode.settings, not a checked-in .vscode/settings.json:
+      // this path only exists inside the container (see containerEnv's
+      // UV_PROJECT_ENVIRONMENT above), so it must only apply to the devcontainer
+      // session -- a committed .vscode/settings.json would wrongly point a
+      // host-opened VS Code window at this same nonexistent container path.
+      // Without this, the Python extension won't auto-discover the relocated
+      // venv (it only scans workspace-relative .venv/venv), silently falling
+      // back to the base image's system Python -- which has none of this
+      // project's dependencies installed -- for both running and debugging.
+      "settings": {
+        "python.defaultInterpreterPath": "/home/vscode/.venv/bin/python"
+      }
     }
   },
 
