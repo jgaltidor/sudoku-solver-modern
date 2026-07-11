@@ -5,7 +5,9 @@ the HTTP API.
 Unlike sudoku_solver_service_inez's scripts/solve.sh, this doesn't need a
 temp working directory or a toolchain on PATH -- solve() is a pure
 in-process function (see src/sudoku_solver/solver.py), so this script just
-calls it directly.
+calls it directly. scripts/solver.sh, if you use it instead, is purely a
+typing-convenience wrapper around `uv run scripts/solver.py` -- not a
+reintroduction of that old toolchain necessity.
 
 Usage: python scripts/solver.py <input.json> [output.json]
 

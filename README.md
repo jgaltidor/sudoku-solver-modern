@@ -81,6 +81,7 @@ frontend/      # React + Vite UI (copied from the old repo, re-wired to this bac
 scripts/
   run.sh            # launch backend + frontend as native processes (devcontainer dev loop)
   solver.py         # CLI: solve one board from a JSON file, without the HTTP API
+  solver.sh         # convenience wrapper: `uv run scripts/solver.py`, args forwarded as-is
   example_solve.py  # worked example invocation of scripts/solver.py
   publish.sh        # push the built backend/frontend images to Docker Hub
 example_inputs/
@@ -221,14 +222,14 @@ npm run format:check   # prettier --check; npm run format to auto-fix
 Solve a board from the command line, without the HTTP API:
 
 ```bash
-uv run scripts/solver.py example_inputs/solve_input_example.json
+scripts/solver.sh example_inputs/solve_input_example.json
 ```
 
 which prints `{"input_board": [...], "has_solution": true, "solved_board": [...]}` to stdout, or
 pass a second argument to write the result to a file instead:
 
 ```bash
-uv run scripts/solver.py example_inputs/solve_input_example.json solved.json
+scripts/solver.sh example_inputs/solve_input_example.json solved.json
 ```
 
 `example_inputs/solve_input_example.json` is a worked example of the input format (also see
@@ -238,8 +239,10 @@ uv run scripts/solver.py example_inputs/solve_input_example.json solved.json
 uv run scripts/example_solve.py
 ```
 
-Unlike the old repo's `scripts/solve.sh`, this doesn't need a toolchain on `PATH` or a
-temp-dir/config-file trick to invoke the solver -- `solve()` is a pure in-process function here.
+`scripts/solver.sh` is just `uv run scripts/solver.py "$@"` -- a typing-convenience wrapper, not a
+toolchain necessity: unlike the old repo's `scripts/solve.sh`, this doesn't need a toolchain on `PATH`
+or a temp-dir/config-file trick to invoke the solver, since `solve()` is a pure in-process function
+here. Calling `uv run scripts/solver.py` directly instead works identically.
 
 ## Example request
 

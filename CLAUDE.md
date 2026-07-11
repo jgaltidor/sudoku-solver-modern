@@ -38,9 +38,11 @@ uv run ruff format --check .               # format check (matches CI); drop --c
 
 CLI (from repo root, without going through the HTTP API):
 ```bash
-uv run scripts/solver.py <input.json> [output.json]  # solve one board, print or write the result
-uv run scripts/example_solve.py                      # worked example, solves example_inputs/solve_input_example.json
+scripts/solver.sh <input.json> [output.json]  # solve one board, print or write the result
+uv run scripts/example_solve.py               # worked example, solves example_inputs/solve_input_example.json
 ```
+`scripts/solver.sh` is just `uv run scripts/solver.py "$@"`, a typing-convenience wrapper -- `uv run
+scripts/solver.py <input.json> [output.json]` works identically if you'd rather call it directly.
 
 Frontend (from `frontend/`):
 ```bash
@@ -74,6 +76,7 @@ frontend/      # React + Vite UI, copied from the old repo and re-wired to this 
 scripts/
   run.sh            # launch backend + frontend as native processes (devcontainer dev loop)
   solver.py         # CLI: solve one board from a JSON file, without the HTTP API
+  solver.sh         # convenience wrapper: `uv run scripts/solver.py`, args forwarded as-is
   example_solve.py  # worked example invocation of scripts/solver.py
   publish.sh        # push the built backend/frontend images to Docker Hub
 example_inputs/
