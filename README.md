@@ -59,6 +59,33 @@ Either path gets you a running app. From here:
   separately from the Docker path above).
 - Every other command in this README -- see [Running it](#running-it) for the full reference.
 
+## CLI
+
+Solve a board from the command line, without the HTTP API:
+
+```bash
+scripts/solver.sh example_inputs/solve_input_example.json
+```
+
+which prints `{"input_board": [...], "has_solution": true, "solved_board": [...]}` to stdout, or
+pass a second argument to write the result to a file instead:
+
+```bash
+scripts/solver.sh example_inputs/solve_input_example.json solved.json
+```
+
+`example_inputs/solve_input_example.json` is a worked example of the input format (also see
+`tests/cases/` -- any of those files work as input too). To run that same example directly:
+
+```bash
+uv run scripts/example_solve.py
+```
+
+`scripts/solver.sh` is just `uv run scripts/solver.py "$@"` -- a typing-convenience wrapper, not a
+toolchain necessity: unlike the old repo's `scripts/solve.sh`, this doesn't need a toolchain on `PATH`
+or a temp-dir/config-file trick to invoke the solver, since `solve()` is a pure in-process function
+here. Calling `uv run scripts/solver.py` directly instead works identically.
+
 ## Layout
 
 ```
@@ -229,33 +256,6 @@ npm run format:check   # prettier --check; npm run format to auto-fix
 
 `.github/workflows/ci.yml` runs all of these (plus `pytest`, `npm run test`, `npm run build`, and
 `docker compose build` to catch a broken `Dockerfile`/`docker-compose.yml`) on every push/PR.
-
-## CLI
-
-Solve a board from the command line, without the HTTP API:
-
-```bash
-scripts/solver.sh example_inputs/solve_input_example.json
-```
-
-which prints `{"input_board": [...], "has_solution": true, "solved_board": [...]}` to stdout, or
-pass a second argument to write the result to a file instead:
-
-```bash
-scripts/solver.sh example_inputs/solve_input_example.json solved.json
-```
-
-`example_inputs/solve_input_example.json` is a worked example of the input format (also see
-`tests/cases/` -- any of those files work as input too). To run that same example directly:
-
-```bash
-uv run scripts/example_solve.py
-```
-
-`scripts/solver.sh` is just `uv run scripts/solver.py "$@"` -- a typing-convenience wrapper, not a
-toolchain necessity: unlike the old repo's `scripts/solve.sh`, this doesn't need a toolchain on `PATH`
-or a temp-dir/config-file trick to invoke the solver, since `solve()` is a pure in-process function
-here. Calling `uv run scripts/solver.py` directly instead works identically.
 
 ## Example request
 
