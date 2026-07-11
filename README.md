@@ -19,6 +19,11 @@ src/sudoku_solver/
   solver.py    # OR-Tools CP-SAT solver
   api.py       # FastAPI app: POST /solve, GET /health
 frontend/      # React + Vite UI (copied from the old repo, re-wired to this backend)
+scripts/
+  solver.py         # CLI: solve one board from a JSON file, without the HTTP API
+  example_solve.py  # worked example invocation of scripts/solver.py
+example_inputs/
+  solve_input_example.json  # sample board used by scripts/example_solve.py
 tests/
   cases/       # input boards (also used as POST bodies directly)
   expected/    # expected has_solution / solved_board per case
@@ -77,6 +82,31 @@ pytest tests/
 `box_duplicate.json`, the regression case for a real bug in the old solver: it used to only constrain
 rows/columns, not 3x3 boxes). `test_solver.py` exercises the OR-Tools solver directly; `test_api.py` runs
 the same cases through the FastAPI layer, plus a couple of request-validation checks.
+
+## CLI
+
+Solve a board from the command line, without the HTTP API:
+
+```bash
+python scripts/solver.py example_inputs/solve_input_example.json
+```
+
+which prints `{"input_board": [...], "has_solution": true, "solved_board": [...]}` to stdout, or
+pass a second argument to write the result to a file instead:
+
+```bash
+python scripts/solver.py example_inputs/solve_input_example.json solved.json
+```
+
+`example_inputs/solve_input_example.json` is a worked example of the input format (also see
+`tests/cases/` -- any of those files work as input too). To run that same example directly:
+
+```bash
+python scripts/example_solve.py
+```
+
+Unlike the old repo's `scripts/solve.sh`, this doesn't need a toolchain on `PATH` or a
+temp-dir/config-file trick to invoke the solver -- `solve()` is a pure in-process function here.
 
 ## Example request
 
