@@ -93,3 +93,6 @@ Key points:
   relocates the venv to `/home/vscode/.venv` via `UV_PROJECT_ENVIRONMENT` rather than the default
   `./.venv`, since that default would otherwise land inside this bind-mounted workspace and collide with
   a host checkout's own (differently-platformed) `.venv` at the same path.
+- **`docker-compose.yml`'s `frontend` waits on `backend`'s `HEALTHCHECK`** (`condition:
+  service_healthy`, not just container-started) before starting, since Vite's dev server proxies
+  `/solve`/`/health` straight to it.
