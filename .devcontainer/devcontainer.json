@@ -37,13 +37,22 @@
   // - ms-python.python / ms-python.vscode-pylance: Python language support
   // - charliermarsh.ruff: linting/formatting (pyproject.toml-configured below)
   // - anthropic.claude-code: Claude Code's own VS Code extension
+  // - redhat.vscode-yaml: schema validation/editing for docker-compose.yml and
+  //   .github/workflows/ci.yml (VS Code's built-in YAML support has neither)
+  // - ms-azuretools.vscode-containers: Dockerfile linting + compose support,
+  //   for the Dockerfiles/docker-compose.yml this repo's docker-based workflow
+  //   actually relies on
+  // - tamasfe.even-better-toml: pyproject.toml editing/schema validation
   "customizations": {
     "vscode": {
       "extensions": [
         "ms-python.python",
         "ms-python.vscode-pylance",
         "charliermarsh.ruff",
-        "anthropic.claude-code"
+        "anthropic.claude-code",
+        "redhat.vscode-yaml",
+        "ms-azuretools.vscode-containers",
+        "tamasfe.even-better-toml"
       ]
     }
   },
