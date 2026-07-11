@@ -95,8 +95,10 @@
   // inside the container would appear to complete in the browser but silently
   // fail to write its credentials file into the (root-owned, read-only-to-
   // vscode) mounts entry below, surfacing later as "Failed to retrieve auth
-  // status after login". Runs once per container creation (idempotent, so
-  // harmless on rebuilds against an already-fixed volume too).
+  // status after login". Same reasoning applies to the gh-config volume --
+  // without the chown, `gh auth login` would hit the same silent write
+  // failure into a root-owned ~/.config/gh. Runs once per container creation
+  // (idempotent, so harmless on rebuilds against already-fixed volumes too).
   //
   // The gh symlink works around this base image's apt-based install (via the
   // github-cli feature above) landing at /usr/bin/gh -- VS Code's own git
@@ -104,7 +106,7 @@
   // /usr/local/bin/gh rather than resolving it through PATH, so without this
   // every git fetch/push logs "/usr/local/bin/gh: not found" to stderr (the
   // fetch/push itself still succeeds via the helper's other fallback).
-  "postCreateCommand": "sudo ln -sf \"$(command -v gh)\" /usr/local/bin/gh && sudo chown -R vscode:vscode /home/vscode/.claude && uv sync --extra dev && npm install --prefix frontend",
+  "postCreateCommand": "sudo ln -sf \"$(command -v gh)\" /usr/local/bin/gh && sudo chown -R vscode:vscode /home/vscode/.claude /home/vscode/.config/gh && uv sync --extra dev && npm install --prefix frontend",
 
   // containerEnv, not remoteEnv: remoteEnv is only injected into sessions VS
   // Code itself starts (its integrated terminal, postCreateCommand, tasks) --
@@ -130,23 +132,23 @@
     // token via `claude setup-token` on the host; the macOS Keychain entry
     // the host CLI actually uses can't be read from inside this container.
     "CLAUDE_CODE_OAUTH_TOKEN": "${localEnv:CLAUDE_CODE_OAUTH_TOKEN}",
-    "ANTHROPIC_API_KEY": "${localEnv:ANTHROPIC_API_KEY}",
-    // Lets `gh` (e.g. `gh pr create`, `gh run list`) work without an
-    // interactive `gh auth login` in every fresh container. Separate from
-    // plain `git push`/`fetch`, which already work via VS Code's own
-    // injected credential helper regardless of this var -- this is only for
-    // `gh` subcommands themselves. Create a token at
-    // github.com/settings/tokens and set GH_TOKEN in the host shell profile;
-    // never put it in a repo-tracked file.
-    "GH_TOKEN": "${localEnv:GH_TOKEN}"
+    "ANTHROPIC_API_KEY": "${localEnv:ANTHROPIC_API_KEY}"
   },
 
-  // Named volume (not a host bind mount) for the container's own ~/.claude --
-  // keeps this container's Claude Code settings/memory/auth stable across
-  // rebuilds, without live-sharing (and racing with) the host's actual
-  // ~/.claude, which a real host machine also has open at the same time.
+  // Named volumes (not host bind mounts) for the container's own ~/.claude
+  // and ~/.config/gh -- keeps Claude Code's settings/memory/auth and gh's
+  // own login stable across rebuilds, without live-sharing (and racing
+  // with) the host's actual versions of either, which a real host machine
+  // also has open at the same time. gh's auth doesn't come from a host env
+  // var (GH_TOKEN, CLAUDE_CODE_OAUTH_TOKEN-style) on purpose: this devcontainer
+  // is launched from the VS Code GUI (Dock/Finder), whose process doesn't
+  // source ~/.bashrc/~/.zshrc, so a host shell-profile var wouldn't reach
+  // ${localEnv:...} substitution here without extra host-side launchd setup.
+  // Run `gh auth login` once inside the container instead -- it persists in
+  // this volume across every rebuild from then on.
   "mounts": [
-    "source=claude-code-config-sudoku-solver-modern,target=/home/vscode/.claude,type=volume"
+    "source=claude-code-config-sudoku-solver-modern,target=/home/vscode/.claude,type=volume",
+    "source=gh-config-sudoku-solver-modern,target=/home/vscode/.config/gh,type=volume"
   ],
 
   // uvicorn's default port, and Vite's dev server port
