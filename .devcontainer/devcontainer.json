@@ -36,7 +36,13 @@
     // feature, so it tracks new releases without a manual install script here.
     "ghcr.io/anthropics/devcontainer-features/claude-code:1.0": {},
     // uv, for postCreateCommand below.
-    "ghcr.io/devcontainers-extra/features/uv:1": {}
+    "ghcr.io/devcontainers-extra/features/uv:1": {},
+    // gh CLI. Without it, git operations still work over HTTPS (VS Code's own
+    // injected credential.helper forwards the host's GitHub auth as a
+    // fallback), but that helper tries `gh auth git-credential` first and
+    // logs a harmless "not found" to stderr on every fetch/push when it's
+    // missing. Also needed directly for PR/issue work per CLAUDE.md.
+    "ghcr.io/devcontainers/features/github-cli:1": {}
   },
 
   // One extension per tool this repo actually uses:
@@ -91,7 +97,14 @@
   // vscode) mounts entry below, surfacing later as "Failed to retrieve auth
   // status after login". Runs once per container creation (idempotent, so
   // harmless on rebuilds against an already-fixed volume too).
-  "postCreateCommand": "sudo chown -R vscode:vscode /home/vscode/.claude && uv sync --extra dev && npm install --prefix frontend",
+  //
+  // The gh symlink works around this base image's apt-based install (via the
+  // github-cli feature above) landing at /usr/bin/gh -- VS Code's own git
+  // credential helper shells out to gh via the hardcoded path
+  // /usr/local/bin/gh rather than resolving it through PATH, so without this
+  // every git fetch/push logs "/usr/local/bin/gh: not found" to stderr (the
+  // fetch/push itself still succeeds via the helper's other fallback).
+  "postCreateCommand": "sudo ln -sf \"$(command -v gh)\" /usr/local/bin/gh && sudo chown -R vscode:vscode /home/vscode/.claude && uv sync --extra dev && npm install --prefix frontend",
 
   // containerEnv, not remoteEnv: remoteEnv is only injected into sessions VS
   // Code itself starts (its integrated terminal, postCreateCommand, tasks) --
