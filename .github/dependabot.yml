@@ -5,27 +5,56 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    ignore:
+      # Major bumps opened as PRs anyway, but only after a look -- not
+      # proposed automatically like minor/patch. (First run already caught a
+      # real case for this: eslint-plugin-react doesn't support ESLint 10 yet,
+      # see frontend's ignore below -- same risk class applies here too.)
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
 
   # Frontend: package.json + package-lock.json
   - package-ecosystem: "npm"
     directory: "/frontend"
     schedule:
       interval: "weekly"
+    ignore:
+      # First run opened PRs bumping react/react-dom 18->19 and eslint/
+      # @eslint/js 9->10 that failed CI: eslint-plugin-react@7.37.5 caps its
+      # eslint peer dep at ^9.7, so ESLint 10 breaks `npm ci` outright (the
+      # same conflict hit and worked around when this was first set up).
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
 
   # GitHub Actions used in .github/workflows/ci.yml
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
 
   # Base images: python:3.12-slim + ghcr.io/astral-sh/uv (backend Dockerfile)
   - package-ecosystem: "docker"
     directory: "/"
     schedule:
       interval: "weekly"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
 
   # Base image: node:20 (frontend Dockerfile)
   - package-ecosystem: "docker"
     directory: "/frontend"
     schedule:
       interval: "weekly"
+    ignore:
+      # First run proposed node 20->26 -- passed CI, but node is *also*
+      # pinned in .devcontainer/devcontainer.json and .github/workflows/
+      # ci.yml's node-version, neither of which this PR would touch. A
+      # generic semver-major ignore is defense in depth here more than the
+      # actual fix -- if you do want to move off 20, update all three
+      # together rather than merging this ecosystem's PR alone.
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
