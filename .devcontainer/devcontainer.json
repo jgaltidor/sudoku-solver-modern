@@ -2,6 +2,25 @@
   "name": "Sudoku Solver (modern)",
   "image": "mcr.microsoft.com/devcontainers/python:3.12",
 
+  // Unlike the old repo's xenial-based devcontainer, this base image
+  // (Debian 13/trixie, glibc 2.41) has no compatibility blocker against
+  // either feature below -- no manual static-binary/glibc-shim workarounds
+  // needed, just the official features directly.
+  "features": {
+    // Lets frontend/ (npm install, vite) run directly in this same
+    // container -- no sibling frontend container needed just to edit/build
+    // the UI.
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "lts"
+    },
+    // Docker CLI + compose plugin, wired up against the host's own Docker
+    // daemon (bind-mounts docker.sock, handles the non-root group
+    // membership itself) -- lets `docker compose up`/`build` run from this
+    // same terminal too, for testing the actual Dockerfiles/compose setup
+    // rather than just the raw source.
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
+  },
+
   // One extension per tool this repo actually uses:
   // - ms-python.python / ms-python.vscode-pylance: Python language support
   // - charliermarsh.ruff: linting/formatting (pyproject.toml-configured below)
@@ -24,14 +43,15 @@
   // scripts (pytest, uvicorn, etc.) to ~/.local/bin -- fine in an
   // interactive terminal (this image's .bashrc already adds it to PATH),
   // but remoteEnv below makes that explicit rather than relying on it.
-  "postCreateCommand": "pip install --upgrade pip && pip install -e '.[dev]'",
+  // Also installs frontend/'s npm deps so it's immediately runnable too.
+  "postCreateCommand": "pip install --upgrade pip && pip install -e '.[dev]' && npm install --prefix frontend",
 
   "remoteEnv": {
     "PATH": "/home/vscode/.local/bin:${containerEnv:PATH}"
   },
 
-  // uvicorn's default port for `uvicorn sudoku_solver.api:app`
-  "forwardPorts": [8000],
+  // uvicorn's default port, and Vite's dev server port
+  "forwardPorts": [8000, 3000],
 
   "remoteUser": "vscode"
 }

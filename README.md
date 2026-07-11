@@ -45,12 +45,14 @@ changes (`pyproject.toml`, `frontend/package.json`).
 
 ### Devcontainer
 
-Open this repo in VS Code and reopen in the container (`.devcontainer/devcontainer.json`) for a Python
-environment with the package and dev dependencies already installed (`pytest`, `uvicorn`, etc. all on
-`PATH`) -- run `uvicorn sudoku_solver.api:app --reload` directly from its integrated terminal. This
-devcontainer is backend-only: it doesn't have Docker available inside it (unlike the old repo's, it isn't
-set up for Docker-outside-of-Docker), so running the frontend or the full `docker compose up` stack needs
-a regular terminal on the host instead.
+Open this repo in VS Code and reopen in the container (`.devcontainer/devcontainer.json`) for a full-stack
+dev environment: Python (package + dev deps installed), Node (via the `node` feature, so `frontend/`'s npm
+deps are installed too), and the Docker CLI (via `docker-outside-of-docker`, wired up against the host's
+own Docker daemon). From its integrated terminal you can edit, build, and run everything --
+`uvicorn sudoku_solver.api:app --reload`, `npm start --prefix frontend`, and `docker compose up --build`
+all work directly, no separate host terminal needed. (Unlike the old repo's devcontainer, no manual
+static-binary/glibc-shim workarounds were needed for any of this -- this image's Debian 13 base has none
+of xenial's compatibility constraints.)
 
 ### Local, no Docker
 
