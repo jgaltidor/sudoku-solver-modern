@@ -4,7 +4,7 @@
 # setup had -- just without needing a bind-mount-plus-rebuild dance, since
 # there's no compiled artifact here the way sudoku_solver_inez/src's
 # sudoku.cma was.
-FROM python:3.12-slim
+FROM python:3.14-slim
 
 # Just for the HEALTHCHECK below -- python:3.12-slim has neither curl nor
 # wget by default.
