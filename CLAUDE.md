@@ -14,22 +14,22 @@ of shelling out per request).
 
 ## Commands
 
-Backend (from repo root, venv at `.venv`):
+Backend (from repo root; [uv](https://docs.astral.sh/uv/) manages `.venv` and `uv.lock` — no manual
+`pip`/`venv` steps, and `uv run` finds the venv itself without activating it):
 ```bash
-source .venv/bin/activate
-pip install -e '.[dev]'                 # install backend + dev deps
-uvicorn sudoku_solver.api:app --reload  # run backend on :8000
-pytest tests/                           # run all tests
-pytest tests/ -v                        # verbose (matches CI)
-pytest tests/test_solver.py             # solver-level tests only
-pytest tests/test_api.py                # FastAPI TestClient tests only
-pytest tests/ -k unique_solution        # run a single fixture case by name
+uv sync --extra dev                        # install backend + dev deps from uv.lock into .venv
+uv run uvicorn sudoku_solver.api:app --reload  # run backend on :8000
+uv run pytest tests/                       # run all tests
+uv run pytest tests/ -v                    # verbose (matches CI)
+uv run pytest tests/test_solver.py         # solver-level tests only
+uv run pytest tests/test_api.py            # FastAPI TestClient tests only
+uv run pytest tests/ -k unique_solution    # run a single fixture case by name
 ```
 
-CLI (from repo root, same venv as above, without going through the HTTP API):
+CLI (from repo root, without going through the HTTP API):
 ```bash
-python scripts/solver.py <input.json> [output.json]  # solve one board, print or write the result
-python scripts/example_solve.py                      # worked example, solves example_inputs/solve_input_example.json
+uv run scripts/solver.py <input.json> [output.json]  # solve one board, print or write the result
+uv run scripts/example_solve.py                      # worked example, solves example_inputs/solve_input_example.json
 ```
 
 Frontend (from `frontend/`):
@@ -45,8 +45,8 @@ docker compose up --build   # backend :8000, frontend :3000, bind-mounted source
 scripts/publish.sh          # push the built images to Docker Hub (docker login + docker compose build first)
 ```
 
-CI (`.github/workflows/ci.yml`) only runs the Python test suite (`pip install -e '.[dev]'` then
-`pytest tests/ -v`) on push/PR — there is no frontend build/lint/test step in CI.
+CI (`.github/workflows/ci.yml`) only runs the Python test suite (`uv sync --extra dev` then
+`uv run pytest tests/ -v`) on push/PR — there is no frontend build/lint/test step in CI.
 
 ## Architecture
 
@@ -84,3 +84,10 @@ Key points:
 - **Validation lives in two places on purpose.** `board.py`'s `board_from_dict` and `api.py`'s
   `SolveRequest.field_validator` both check the 9x9 shape (plus 0-9 range in the API layer) — the former
   for direct/test use, the latter for HTTP request validation with proper 422 responses.
+- **`uv`/`uv.lock` replaced `pip`/`venv` everywhere** (local dev, `Dockerfile`, CI, devcontainer) for
+  faster installs and real dependency pinning — `ortools` alone pulls in ~30 transitive packages
+  (numpy, pandas, protobuf, ...) that `pip` was re-resolving from scratch on every fresh install. Commit
+  `uv.lock` alongside any `pyproject.toml` dependency change (`uv lock` regenerates it). The devcontainer
+  relocates the venv to `/home/vscode/.venv` via `UV_PROJECT_ENVIRONMENT` rather than the default
+  `./.venv`, since that default would otherwise land inside this bind-mounted workspace and collide with
+  a host checkout's own (differently-platformed) `.venv` at the same path.

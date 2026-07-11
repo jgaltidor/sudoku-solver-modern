@@ -30,6 +30,7 @@ tests/
   expected/    # expected has_solution / solved_board per case
   test_solver.py  # solver-level tests
   test_api.py      # same cases, through FastAPI's TestClient
+uv.lock                # pinned dependency versions (uv)
 Dockerfile             # backend image
 docker-compose.yml      # backend + frontend together
 .devcontainer/          # VS Code Dev Container (Python 3.12 image, no custom build needed)
@@ -56,13 +57,17 @@ old repo's `docker/publish.sh`, just relocated next to this repo's other CLI scr
 ### Devcontainer
 
 Open this repo in VS Code and reopen in the container (`.devcontainer/devcontainer.json`) for a full-stack
-dev environment: Python (package + dev deps installed), Node (via the `node` feature, so `frontend/`'s npm
-deps are installed too), and the Docker CLI (via `docker-outside-of-docker`, wired up against the host's
-own Docker daemon). From its integrated terminal you can edit, build, and run everything --
-`uvicorn sudoku_solver.api:app --reload`, `npm start --prefix frontend`, and `docker compose up --build`
-all work directly, no separate host terminal needed. (Unlike the old repo's devcontainer, no manual
-static-binary/glibc-shim workarounds were needed for any of this -- this image's Debian 13 base has none
-of xenial's compatibility constraints.)
+dev environment: Python (package + dev deps installed via `uv`), Node (via the `node` feature, so
+`frontend/`'s npm deps are installed too), and the Docker CLI (via `docker-outside-of-docker`, wired up
+against the host's own Docker daemon). From its integrated terminal you can edit, build, and run
+everything -- `uv run uvicorn sudoku_solver.api:app --reload`, `npm start --prefix frontend`, and
+`docker compose up --build` all work directly, no separate host terminal needed. (Unlike the old repo's
+devcontainer, no manual static-binary/glibc-shim workarounds were needed for any of this -- this image's
+Debian 13 base has none of xenial's compatibility constraints.)
+
+Its `.venv` lives at `/home/vscode/.venv` (`UV_PROJECT_ENVIRONMENT`), not the default `./.venv` --
+that default would land inside this bind-mounted workspace and collide with a host checkout's own
+(differently-platformed) `.venv` at the same path. `uv run`/`uv sync` find it automatically either way.
 
 The `claude` CLI is also available in the container (via the `claude-code` feature -- your host's own
 `claude` binary won't run here, it's a macOS build). Its config/memory lives in a container-local named
@@ -72,11 +77,13 @@ or set `CLAUDE_CODE_OAUTH_TOKEN`/`ANTHROPIC_API_KEY` in your host shell before r
 
 ### Local, no Docker
 
+Requires [uv](https://docs.astral.sh/uv/) (`curl -LsSf https://astral.sh/uv/install.sh | sh`), which
+manages `.venv`/`uv.lock` itself -- no separate `python -m venv`/`pip install` step, and `uv run` finds
+the venv without needing it activated.
+
 ```bash
-python3.12 -m venv .venv
-source .venv/bin/activate
-pip install -e '.[dev]'
-uvicorn sudoku_solver.api:app --reload
+uv sync --extra dev
+uv run uvicorn sudoku_solver.api:app --reload
 ```
 
 ```bash
@@ -86,7 +93,7 @@ cd frontend && npm install && npm start
 ## Testing
 
 ```bash
-pytest tests/
+uv run pytest tests/
 ```
 
 `tests/cases/`/`tests/expected/` are the same fixtures the old repo's `tests/solver/` uses (including
@@ -99,21 +106,21 @@ the same cases through the FastAPI layer, plus a couple of request-validation ch
 Solve a board from the command line, without the HTTP API:
 
 ```bash
-python scripts/solver.py example_inputs/solve_input_example.json
+uv run scripts/solver.py example_inputs/solve_input_example.json
 ```
 
 which prints `{"input_board": [...], "has_solution": true, "solved_board": [...]}` to stdout, or
 pass a second argument to write the result to a file instead:
 
 ```bash
-python scripts/solver.py example_inputs/solve_input_example.json solved.json
+uv run scripts/solver.py example_inputs/solve_input_example.json solved.json
 ```
 
 `example_inputs/solve_input_example.json` is a worked example of the input format (also see
 `tests/cases/` -- any of those files work as input too). To run that same example directly:
 
 ```bash
-python scripts/example_solve.py
+uv run scripts/example_solve.py
 ```
 
 Unlike the old repo's `scripts/solve.sh`, this doesn't need a toolchain on `PATH` or a

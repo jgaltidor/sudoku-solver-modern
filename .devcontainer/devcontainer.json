@@ -30,7 +30,9 @@
     // Installs the claude CLI itself (Linux build -- the host's ~/.local/bin/claude
     // is a macOS binary and can't run in this container). Anthropic's own
     // feature, so it tracks new releases without a manual install script here.
-    "ghcr.io/anthropics/devcontainer-features/claude-code:1.0": {}
+    "ghcr.io/anthropics/devcontainer-features/claude-code:1.0": {},
+    // uv, for postCreateCommand below.
+    "ghcr.io/devcontainers-extra/features/uv:1": {}
   },
 
   // One extension per tool this repo actually uses:
@@ -58,17 +60,27 @@
   },
 
   // Installs this project (editable) plus its dev extras (pytest, httpx2)
-  // straight into the image's system Python -- no separate venv needed
-  // inside the container, since the container itself is already the
-  // isolated environment. Since we're not root, pip installs console
-  // scripts (pytest, uvicorn, etc.) to ~/.local/bin -- fine in an
-  // interactive terminal (this image's .bashrc already adds it to PATH),
-  // but remoteEnv below makes that explicit rather than relying on it.
-  // Also installs frontend/'s npm deps so it's immediately runnable too.
-  "postCreateCommand": "pip install --upgrade pip && pip install -e '.[dev]' && npm install --prefix frontend",
+  // from uv.lock, and frontend/'s npm deps, so both are immediately runnable.
+  "postCreateCommand": "uv sync --extra dev && npm install --prefix frontend",
 
-  "remoteEnv": {
-    "PATH": "/home/vscode/.local/bin:${containerEnv:PATH}",
+  // containerEnv, not remoteEnv: remoteEnv is only injected into sessions VS
+  // Code itself starts (its integrated terminal, postCreateCommand, tasks) --
+  // it does *not* apply to a plain `docker exec`/`ssh` shell in the same
+  // container. UV_PROJECT_ENVIRONMENT being remoteEnv-only was a real bug
+  // here, not just a style choice: found by exec-ing in directly and running
+  // `uv run pytest`, which -- with the var unset in that shell -- created a
+  // *new* .venv straight in this bind-mounted workspace, silently deleting
+  // the host's own (macOS) .venv that happened to be sitting at that same
+  // path first. containerEnv applies everywhere uniformly, so that can't
+  // happen regardless of how a shell gets into the container.
+  "containerEnv": {
+    // uv normally creates .venv next to pyproject.toml -- but that's this
+    // bind-mounted workspace, so it'd land in the same ./.venv a host
+    // checkout uses for its own (macOS, not Linux) venv. Relocating it
+    // container-side avoids one platform's venv clobbering the other's.
+    // `uv run`/`uv sync` both honor this automatically, no PATH change
+    // needed to use them.
+    "UV_PROJECT_ENVIRONMENT": "/home/vscode/.venv",
     // Lets a first `claude` run in the container skip interactive login,
     // if the host shell has one of these set (empty/unset on the host is
     // fine -- VS Code substitutes an empty string, not an error). Get a
