@@ -10,7 +10,8 @@ how this repo compares to the old one.
 src/sudoku_solver/
   board.py     # board representation, JSON (de)serialization
   solver.py    # OR-Tools CP-SAT solver
-  api.py       # FastAPI app: POST /solve, GET /health
+  api.py       # FastAPI app: POST /solve, GET /health, plus a static-file mount for
+               # Dockerfile.combined's bundled frontend (no-op unless that build populated it)
 frontend/      # React + Vite UI (copied from the old repo, re-wired to this backend)
   eslint.config.js, .prettierrc.json  # lint/format rules (added on top of the copied code)
   src/index.test.jsx  # drives the mounted app through its own UI, fetch mocked (vitest)
@@ -20,7 +21,7 @@ scripts/
   solver.py         # CLI: solve one board from a JSON file, without the HTTP API
   solver.sh         # convenience wrapper: `uv run scripts/solver.py`, args forwarded as-is
   example_solve.py  # worked example invocation of scripts/solver.py
-  publish.sh        # push the built backend/frontend images to Docker Hub
+  publish.sh        # push the backend/frontend images and the combined image to Docker Hub
 example_inputs/
   solve_input_example.json  # sample board used by scripts/example_solve.py
 tests/
@@ -31,6 +32,8 @@ tests/
 uv.lock                # pinned dependency versions (uv)
 Dockerfile             # backend image
 docker-compose.yml      # backend + frontend together
+Dockerfile.combined              # single-image build: bundled frontend + backend, one port
+Dockerfile.combined.dockerignore # per-Dockerfile ignore override (root .dockerignore excludes frontend/)
 .devcontainer/          # VS Code Dev Container (Python 3.12 image, no custom build needed)
 ```
 
@@ -122,6 +125,14 @@ change, since this script deliberately doesn't rebuild on its own.
 Hub. After `docker login` and a `docker compose build`, `scripts/publish.sh` pushes them -- mirrors the
 old repo's `docker/publish.sh`, just relocated next to this repo's other CLI scripts.
 
+`Dockerfile.combined` is a separate, third image: the frontend's `vite build` output bundled into the
+backend image, served from one process/port (`docker run -p 8000:8000
+jgaltidor/sudoku-solver-modern:latest`) -- no `docker-compose.yml`, no bind mounts, no `--reload`/Vite
+dev server. Build it with `docker build -f Dockerfile.combined -t jgaltidor/sudoku-solver-modern:latest
+.`; unlike `docker compose up --build`, this works fine from the devcontainer's own terminal too, since
+it's a plain image build rather than a bind-mounted compose service, so the host-daemon path mismatch
+above doesn't apply. `scripts/publish.sh` pushes this image alongside the two `docker-compose.yml` ones.
+
 ### Local, no Docker
 
 Works in either the devcontainer or a plain host shell, wherever [uv](https://docs.astral.sh/uv/) is
@@ -173,7 +184,8 @@ npm run format:check   # prettier --check; npm run format to auto-fix
 ```
 
 `.github/workflows/ci.yml` runs all of these (plus `pytest`, `npm run test`, `npm run build`, and
-`docker compose build` to catch a broken `Dockerfile`/`docker-compose.yml`) on every push/PR.
+`docker compose build`/`docker build -f Dockerfile.combined` to catch a broken `Dockerfile`/
+`docker-compose.yml`/`Dockerfile.combined`) on every push/PR.
 
 ## CLI
 
