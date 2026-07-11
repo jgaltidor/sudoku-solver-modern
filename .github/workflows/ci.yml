@@ -4,6 +4,12 @@ name: CI
   push:
   pull_request:
 
+# None of these jobs need to write anything back to the repo (no auto-commit,
+# no release, no PR comment) -- explicit read-only default rather than
+# whatever the org's broader GITHUB_TOKEN default happens to be.
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
