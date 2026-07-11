@@ -189,3 +189,7 @@ curl -X POST http://localhost:8000/solve \
 ```
 
 Returns `{"input_board": [...], "has_solution": true, "solved_board": [...]}`.
+
+## License
+
+[MIT](LICENSE)
