@@ -58,7 +58,8 @@ Both together via Docker:
 ```bash
 docker compose up --build   # backend :8000, frontend :3000, bind-mounted source for live reload
 scripts/dev-run.sh          # restart both containers after that, without rebuilding
-scripts/publish.sh          # push the built images to Docker Hub (docker login + docker compose build first)
+docker build -f Dockerfile.combined -t jgaltidor/sudoku-solver-modern:latest .  # single-image prod build
+scripts/publish.sh          # push the dev-loop images plus the combined one to Docker Hub (docker login + the build commands above first)
 ```
 
 CI (`.github/workflows/ci.yml`) runs three jobs on push/PR: `test` (`uv sync --extra dev`, `pytest`,
@@ -72,15 +73,18 @@ before it reaches a real build).
 src/sudoku_solver/
   board.py     # Board = list[list[int]], 9x9, 0 = blank. JSON (de)serialization.
   solver.py    # OR-Tools CP-SAT model: one add_all_different per row/column/3x3 box
-  api.py       # FastAPI app: POST /solve, GET /health
+  api.py       # FastAPI app: POST /solve, GET /health, plus a conditional static-file
+               # mount for Dockerfile.combined's bundled frontend (see Key points)
 frontend/      # React + Vite UI, copied from the old repo and re-wired to this backend's API shape
+Dockerfile.combined              # single-image build: bundled frontend + backend, one port (see Key points)
+Dockerfile.combined.dockerignore # per-Dockerfile ignore override -- see Key points
 scripts/
   run.sh            # launch backend + frontend as native processes (devcontainer dev loop)
   dev-run.sh        # restart the Docker Compose containers without rebuilding (host terminal only)
   solver.py         # CLI: solve one board from a JSON file, without the HTTP API
   solver.sh         # convenience wrapper: `uv run scripts/solver.py`, args forwarded as-is
   example_solve.py  # worked example invocation of scripts/solver.py
-  publish.sh        # push the built backend/frontend images to Docker Hub
+  publish.sh        # push the backend/frontend images and the combined image to Docker Hub
 example_inputs/
   solve_input_example.json  # sample board used by scripts/example_solve.py
 tests/
@@ -115,6 +119,19 @@ Key points:
 - **`docker-compose.yml`'s `frontend` waits on `backend`'s `HEALTHCHECK`** (`condition:
   service_healthy`, not just container-started) before starting, since Vite's dev server proxies
   `/solve`/`/health` straight to it.
+- **`Dockerfile.combined` is a third image variant, alongside the two dev-loop images** (`Dockerfile`,
+  `frontend/Dockerfile`) that `docker-compose.yml` wires together with bind-mounted live reload. It's a
+  multi-stage build: compile the frontend (`vite build`) in one stage, then copy the result into the
+  backend image, which serves it as static files -- see `api.py`'s `StaticFiles` mount, gated on a
+  `frontend_dist/` directory existing so it's a no-op for the dev-loop backend image, the test suite, and
+  local `uv run`/`pytest` (none of which ever populate that path). One process, one port, no
+  `--reload`/Vite dev server -- meant to be run standalone (`docker run -p 8000:8000
+  jgaltidor/sudoku-solver-modern:latest`), no `docker-compose.yml` involved. It needs its own
+  `Dockerfile.combined.dockerignore`: the root `.dockerignore` excludes `frontend/` wholesale (fine for
+  the backend-only `Dockerfile`, wrong here since this build needs frontend source) -- BuildKit prefers a
+  `<dockerfile-name>.dockerignore` over the plain `.dockerignore` when building with `-f
+  Dockerfile.combined`. `scripts/publish.sh` pushes this image too, alongside the two
+  `docker-compose.yml` ones.
 - **`docker compose up --build` doesn't work from inside the devcontainer's own terminal** — its
   `docker-outside-of-docker` feature bind-mounts `docker.sock` so the CLI works, but the daemon on the
   other end of that socket is the *host's*, not the devcontainer's. Compose's `./src:/app/src`-style
