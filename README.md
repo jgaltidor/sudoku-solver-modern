@@ -100,6 +100,66 @@ docker-compose.yml      # backend + frontend together
 
 ## Running it
 
+This is split by *where you're running the command from* -- devcontainer, host machine, or neither --
+since a command from the wrong section can fail in confusing ways (or silently do the wrong thing) in
+the other two.
+
+### Devcontainer
+
+Open this repo in VS Code and reopen in the container (`.devcontainer/devcontainer.json`) for a full-stack
+dev environment: Python (package + dev deps installed via `uv`), Node (via the `node` feature, so
+`frontend/`'s npm deps are installed too), and the Docker CLI (via `docker-outside-of-docker`, wired up
+against the host's own Docker daemon). (Unlike the old repo's devcontainer, no manual
+static-binary/glibc-shim workarounds were needed for any of this -- this image's Debian 13 base has none
+of xenial's compatibility constraints.)
+
+**Run:**
+
+```bash
+scripts/run.sh
+```
+
+runs the backend (`uv run uvicorn sudoku_solver.api:app --reload`) and frontend (`npm start --prefix
+frontend`) as native processes side by side, forwarded the same way as [Getting
+started](#vs-code-devcontainer-for-editing): http://localhost:3000 / http://localhost:8000/health.
+Ctrl+C stops both.
+
+> [!IMPORTANT]
+> `docker compose up`/`scripts/dev-run.sh` do *not* work from inside the devcontainer's own terminal --
+> see [Docker Compose (host machine)](#docker-compose-host-machine) below for why, and use `scripts/run.sh`
+> above instead. `docker compose build` alone is fine here (see **Build** below); it's specifically `up`
+> that fails.
+
+**Edit:** source under `src/` and `frontend/` is the same checkout VS Code has open -- no bind mount or
+rebuild step, changes take effect on save (`uvicorn --reload`, Vite HMR).
+
+**Build:** `docker compose build` works fine from the devcontainer -- unlike `up`, `build` never touches
+a bind mount, so the host-daemon path mismatch described below doesn't apply to it. `npm run build
+--prefix frontend` produces just the frontend's static production bundle without touching Docker at all.
+
+**Test / lint:** see [Testing](#testing) and [Linting and formatting](#linting-and-formatting) below --
+both run identically in the devcontainer, no Docker involved.
+
+Its `.venv` lives at `/home/vscode/.venv` (`UV_PROJECT_ENVIRONMENT`), not the default `./.venv` --
+that default would land inside this bind-mounted workspace and collide with a host checkout's own
+(differently-platformed) `.venv` at the same path. `uv run`/`uv sync` find it automatically either way.
+
+The `claude` CLI is also available in the container (via the `claude-code` feature -- your host's own
+`claude` binary won't run here, it's a macOS build). Its config/memory lives in a container-local named
+volume, not your host's `~/.claude`, so the first run needs its own login: either sign in interactively,
+or set `CLAUDE_CODE_OAUTH_TOKEN`/`ANTHROPIC_API_KEY` in your host shell before reopening the container
+(run `claude setup-token` on the host to mint one) so it's picked up automatically instead.
+
+### Docker Compose (host machine)
+
+> [!IMPORTANT]
+> Run every command in this section from a regular host terminal -- never the devcontainer's own
+> terminal. Its `docker-outside-of-docker` feature sends Compose's bind mounts (`./src:/app/src`) to the
+> *host's* Docker daemon, which resolves them against the devcontainer's own filesystem path
+> (`/workspaces/...`), not a real path on the host, and refuses with a "mounts denied"/file-sharing
+> error. (`docker compose build` alone is the one exception -- it never touches a bind mount, so it
+> works fine from either place; see [Devcontainer](#devcontainer) above.)
+
 ```bash
 docker compose up --build
 ```
@@ -126,57 +186,13 @@ change, since this script deliberately doesn't rebuild on its own.
 Hub. After `docker login` and a `docker compose build`, `scripts/publish.sh` pushes them -- mirrors the
 old repo's `docker/publish.sh`, just relocated next to this repo's other CLI scripts.
 
-### Devcontainer
-
-Open this repo in VS Code and reopen in the container (`.devcontainer/devcontainer.json`) for a full-stack
-dev environment: Python (package + dev deps installed via `uv`), Node (via the `node` feature, so
-`frontend/`'s npm deps are installed too), and the Docker CLI (via `docker-outside-of-docker`, wired up
-against the host's own Docker daemon). (Unlike the old repo's devcontainer, no manual
-static-binary/glibc-shim workarounds were needed for any of this -- this image's Debian 13 base has none
-of xenial's compatibility constraints.)
-
-**Run:**
-
-```bash
-scripts/run.sh
-```
-
-runs the backend (`uv run uvicorn sudoku_solver.api:app --reload`) and frontend (`npm start --prefix
-frontend`) as native processes side by side, forwarded the same way as [Getting
-started](#vs-code-devcontainer-for-editing): http://localhost:3000 / http://localhost:8000/health.
-Ctrl+C stops both. `docker compose up --build` does *not* work from inside the devcontainer's own
-terminal -- its `docker-outside-of-docker` feature sends compose's bind mounts (`./src:/app/src`) to the
-*host's* Docker daemon, which resolves them against the devcontainer's own filesystem path
-(`/workspaces/...`), not a real path on the host, and refuses with a "mounts denied"/file-sharing error.
-Run `docker compose` from a plain host terminal instead if you specifically need the Docker path; for
-day-to-day editing, `scripts/run.sh` is the one that works here and is also faster (no image build/proxy
-hop).
-
-**Edit:** source under `src/` and `frontend/` is the same checkout VS Code has open -- no bind mount or
-rebuild step, changes take effect on save (`uvicorn --reload`, Vite HMR).
-
-**Build:** `docker compose build` works fine from the devcontainer -- unlike `up`, `build` never touches
-a bind mount, so the host-daemon path mismatch above doesn't apply to it. `npm run build --prefix
-frontend` produces just the frontend's static production bundle without touching Docker at all.
-
-**Test / lint:** see [Testing](#testing) and [Linting and formatting](#linting-and-formatting) below --
-both run identically in the devcontainer, no Docker involved.
-
-Its `.venv` lives at `/home/vscode/.venv` (`UV_PROJECT_ENVIRONMENT`), not the default `./.venv` --
-that default would land inside this bind-mounted workspace and collide with a host checkout's own
-(differently-platformed) `.venv` at the same path. `uv run`/`uv sync` find it automatically either way.
-
-The `claude` CLI is also available in the container (via the `claude-code` feature -- your host's own
-`claude` binary won't run here, it's a macOS build). Its config/memory lives in a container-local named
-volume, not your host's `~/.claude`, so the first run needs its own login: either sign in interactively,
-or set `CLAUDE_CODE_OAUTH_TOKEN`/`ANTHROPIC_API_KEY` in your host shell before reopening the container
-(run `claude setup-token` on the host to mint one) so it's picked up automatically instead.
-
 ### Local, no Docker
 
-Requires [uv](https://docs.astral.sh/uv/) (`curl -LsSf https://astral.sh/uv/install.sh | sh`), which
-manages `.venv`/`uv.lock` itself -- no separate `python -m venv`/`pip install` step, and `uv run` finds
-the venv without needing it activated.
+Works in either the devcontainer or a plain host shell, wherever [uv](https://docs.astral.sh/uv/) is
+available (`curl -LsSf https://astral.sh/uv/install.sh | sh` on the host; already installed in the
+devcontainer) -- it manages `.venv`/`uv.lock` itself, no separate `python -m venv`/`pip install` step,
+and `uv run` finds the venv without needing it activated. This is what `scripts/run.sh` runs under the
+hood in the devcontainer, split into its two halves here:
 
 ```bash
 uv sync --extra dev
