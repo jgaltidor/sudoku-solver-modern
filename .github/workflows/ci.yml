@@ -72,3 +72,6 @@ jobs:
 
       - name: Build images
         run: docker compose build
+
+      - name: Build combined image
+        run: docker build -f Dockerfile.combined -t jgaltidor/sudoku-solver-modern:latest .
