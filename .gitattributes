@@ -1,0 +1,7 @@
+# Normalize all text files to LF in the working tree, regardless of host OS
+# or the checking-out user's core.autocrlf setting. Without this, a Windows
+# host with core.autocrlf=true checks scripts out with CRLF, and since
+# .devcontainer/devcontainer.json bind-mounts the live repo straight into
+# the Linux container, a CRLF shebang line ("#!/usr/bin/env python3\r") in
+# scripts/solver.py or scripts/example_solve.py fails to run at all.
+* text=auto eol=lf
