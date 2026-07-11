@@ -11,6 +11,37 @@ completely independent of the old one -- no shared code, build system, or git hi
 | Base image | `ubuntu:16.04` (camlp4-era OCaml/SCIP toolchain) | `python:3.12-slim` / `mcr.microsoft.com/devcontainers/python:3.12` |
 | Frontend | React + Vite | Same (copied, not shared) |
 
+## Getting started
+
+Prerequisites: git, and [Docker Desktop](https://www.docker.com/products/docker-desktop/) (or Docker
+Engine + the Compose plugin) -- that's everything the steps below need.
+
+1. Clone the repo:
+
+   ```bash
+   git clone https://github.com/jgaltidor/sudoku-solver-modern.git
+   cd sudoku-solver-modern
+   ```
+
+2. Build and start both services:
+
+   ```bash
+   docker compose up --build
+   ```
+
+3. Open the app:
+
+   - Frontend: http://localhost:3000
+   - Backend health check: http://localhost:8000/health
+
+That's the fastest path to a running app. From here:
+
+- Editing without Docker (VS Code devcontainer, or a plain local Python/Node setup) -- see
+  [Devcontainer](#devcontainer) / [Local, no Docker](#local-no-docker) below.
+- Running the test suite -- see [Testing](#testing) below (needs [uv](https://docs.astral.sh/uv/),
+  separately from the Docker path above).
+- Every other command in this README -- see [Running it](#running-it) for the full reference.
+
 ## Layout
 
 ```
