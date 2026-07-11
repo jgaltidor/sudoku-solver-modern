@@ -1,0 +1,13 @@
+# Per-Dockerfile ignore file (BuildKit looks for <dockerfile>.dockerignore
+# before falling back to plain .dockerignore) -- that one excludes frontend/
+# entirely, which this build needs since it compiles the frontend itself.
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+.git/
+.github/
+tests/
+frontend/node_modules/
+frontend/dist/

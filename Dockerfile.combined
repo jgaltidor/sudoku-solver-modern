@@ -1,0 +1,47 @@
+# Single-image build: bundles the frontend's production build into the
+# backend image, which serves it as static files (see api.py's StaticFiles
+# mount) instead of proxying to a separate frontend process. One process,
+# one port -- for the "docker run one image" use case, as opposed to
+# Dockerfile + frontend/Dockerfile's two-image dev setup (wired together by
+# docker-compose.yml for bind-mounted live-reload). Unlike that dev setup,
+# this doesn't run the Vite dev server or uvicorn --reload -- both are
+# dev-mode conveniences with no place in a published image.
+
+FROM node:26 AS frontend-build
+WORKDIR /app
+COPY frontend/package*.json ./
+RUN npm ci
+COPY frontend/ ./
+RUN npm run build
+
+FROM python:3.14-slim
+WORKDIR /app
+
+# Official distroless uv image as a COPY source -- no curl/pip bootstrap
+# needed to get the uv binary itself.
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
+# The cache mount below is a different filesystem than /app, so uv can't
+# hardlink into it -- copy instead of falling back with a warning every build.
+ENV UV_LINK_MODE=copy
+
+COPY pyproject.toml uv.lock ./
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-install-project
+
+COPY src ./src
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen
+
+COPY --from=frontend-build /app/dist ./frontend_dist
+
+ENV PATH="/app/.venv/bin:$PATH"
+
+EXPOSE 8000
+
+# python3 instead of the root Dockerfile's curl -- this image has no apt-get
+# layer to install curl into, and python3 is already here for the app itself.
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s \
+    CMD python3 -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')" || exit 1
+
+CMD ["uvicorn", "sudoku_solver.api:app", "--host", "0.0.0.0", "--port", "8000"]
