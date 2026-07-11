@@ -12,6 +12,7 @@ See example_inputs/solve_input_example.json for the input format
 ({"board": [[9x9 ints, 0 for blank cells]]}), and scripts/solver.py's own
 docstring for the [output.json] argument and general usage.
 """
+
 from __future__ import annotations
 
 import subprocess

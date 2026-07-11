@@ -24,6 +24,8 @@ uv run pytest tests/ -v                    # verbose (matches CI)
 uv run pytest tests/test_solver.py         # solver-level tests only
 uv run pytest tests/test_api.py            # FastAPI TestClient tests only
 uv run pytest tests/ -k unique_solution    # run a single fixture case by name
+uv run ruff check .                        # lint (matches CI)
+uv run ruff format --check .               # format check (matches CI); drop --check to auto-fix
 ```
 
 CLI (from repo root, without going through the HTTP API):
@@ -45,8 +47,8 @@ docker compose up --build   # backend :8000, frontend :3000, bind-mounted source
 scripts/publish.sh          # push the built images to Docker Hub (docker login + docker compose build first)
 ```
 
-CI (`.github/workflows/ci.yml`) only runs the Python test suite (`uv sync --extra dev` then
-`uv run pytest tests/ -v`) on push/PR — there is no frontend build/lint/test step in CI.
+CI (`.github/workflows/ci.yml`) runs the Python test suite (`uv sync --extra dev`, `pytest`, `ruff check`,
+`ruff format --check`) on push/PR — there is no frontend build/lint/test step in CI.
 
 ## Architecture
 

@@ -2,6 +2,7 @@
 tests/cases + tests/expected fixtures as test_solver.py -- so the API layer
 can't silently diverge from the solver-level tests.
 """
+
 import json
 from pathlib import Path
 

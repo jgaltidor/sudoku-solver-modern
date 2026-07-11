@@ -104,6 +104,15 @@ uv run pytest tests/
 rows/columns, not 3x3 boxes). `test_solver.py` exercises the OR-Tools solver directly; `test_api.py` runs
 the same cases through the FastAPI layer, plus a couple of request-validation checks.
 
+## Linting and formatting
+
+```bash
+uv run ruff check .           # lint
+uv run ruff format --check .  # format check; drop --check to auto-fix
+```
+
+`.github/workflows/ci.yml` runs both on every push/PR, alongside `pytest`.
+
 ## CLI
 
 Solve a board from the command line, without the HTTP API:

@@ -16,6 +16,7 @@ Usage: python scripts/solver.py <input.json> [output.json]
                has_solution/solved_board). Defaults to printing to stdout
                if omitted.
 """
+
 from __future__ import annotations
 
 import json

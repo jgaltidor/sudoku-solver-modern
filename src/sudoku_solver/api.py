@@ -5,6 +5,7 @@ request via ProcessBuilder, writing/reading JSON files on disk -- this calls
 the OR-Tools solver in-process directly, since it's a plain Python library
 call rather than a dynamically-compiled OCaml toplevel invocation.
 """
+
 from __future__ import annotations
 
 from fastapi import FastAPI

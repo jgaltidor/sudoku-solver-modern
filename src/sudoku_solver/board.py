@@ -3,6 +3,7 @@
 A Board is a 9x9 list of lists of ints, 0 for blank cells -- the same shape
 used by the JSON payloads in this project's own tests/ fixtures.
 """
+
 from __future__ import annotations
 
 Board = list[list[int]]

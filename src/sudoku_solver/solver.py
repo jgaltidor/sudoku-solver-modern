@@ -4,6 +4,7 @@ Row/column/box uniqueness are each a single add_all_different call here --
 CP-SAT's native AllDifferent constraint replaces the nested pairwise
 not-equal loops the old Inez/SMT-based solver needed for the same rules.
 """
+
 from __future__ import annotations
 
 from ortools.sat.python import cp_model

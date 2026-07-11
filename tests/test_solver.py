@@ -5,6 +5,7 @@ OR-Tools rewrite agrees with the original, including the box_duplicate case
 (a regression test for a real bug in the original: it used to only
 constrain rows/columns, not 3x3 boxes).
 """
+
 import json
 from pathlib import Path
 
