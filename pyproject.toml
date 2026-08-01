@@ -7,7 +7,7 @@ requires-python = ">=3.11"
 dependencies = [
     "ortools>=9.15",
     "fastapi>=0.140.0",
-    "uvicorn[standard]>=0.51.0",
+    "uvicorn[standard]>=0.52.0",
 ]
 
 [project.optional-dependencies]
