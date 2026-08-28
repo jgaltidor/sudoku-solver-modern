@@ -12,6 +12,11 @@ them when touching solver or API logic, they carry real design rationale (e.g. w
 `add_all_different` replaced pairwise not-equal constraints, why the solver now runs in-process instead
 of shelling out per request).
 
+## Git workflow
+
+Do not commit directly to `master`. Create a feature branch, commit your changes there, and open a
+GitHub pull request via `gh`.
+
 ## Commands
 
 Devcontainer, both services at once (from repo root):
