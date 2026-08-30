@@ -15,11 +15,12 @@ resource "aws_key_pair" "app" {
 }
 
 resource "aws_instance" "app" {
-  ami                    = local.ami_id
-  instance_type          = var.instance_type
-  subnet_id              = data.aws_subnets.default.ids[0]
-  vpc_security_group_ids = [aws_security_group.app.id]
-  key_name               = aws_key_pair.app.key_name
+  ami                         = local.ami_id
+  instance_type               = var.instance_type
+  subnet_id                   = data.aws_subnets.default.ids[0]
+  vpc_security_group_ids      = [aws_security_group.app.id]
+  key_name                    = aws_key_pair.app.key_name
+  associate_public_ip_address = true # default-VPC subnets already do this; explicit so it holds regardless
 
   user_data = templatefile("${path.module}/user_data.sh", {
     docker_image = var.docker_image

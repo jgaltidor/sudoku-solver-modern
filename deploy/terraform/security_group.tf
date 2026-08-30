@@ -29,11 +29,12 @@ resource "aws_vpc_security_group_ingress_rule" "http" {
 
 resource "aws_vpc_security_group_ingress_rule" "ssh" {
   security_group_id = aws_security_group.app.id
-  description       = "SSH from the operator's network only"
-  from_port         = 22
-  to_port           = 22
-  ip_protocol       = "tcp"
-  cidr_ipv4         = var.ssh_ingress_cidr
+  # AWS SG rule descriptions disallow apostrophes (charset: a-zA-Z0-9._-:/()#,@[]+=&;{}!$*)
+  description = "SSH from the configured operator CIDR only"
+  from_port   = 22
+  to_port     = 22
+  ip_protocol = "tcp"
+  cidr_ipv4   = var.ssh_ingress_cidr
 }
 
 resource "aws_vpc_security_group_egress_rule" "all" {

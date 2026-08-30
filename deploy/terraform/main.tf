@@ -37,10 +37,25 @@ data "aws_vpc" "default" {
   default = true
 }
 
+# Not every AZ offers every instance type (e.g. t3.micro is absent from
+# us-east-1e). Restrict the subnet choice to AZs that actually offer the
+# requested type, so `instance.tf` can safely take .ids[0].
+data "aws_ec2_instance_type_offerings" "supported_azs" {
+  filter {
+    name   = "instance-type"
+    values = [var.instance_type]
+  }
+  location_type = "availability-zone"
+}
+
 data "aws_subnets" "default" {
   filter {
     name   = "vpc-id"
     values = [data.aws_vpc.default.id]
+  }
+  filter {
+    name   = "availability-zone"
+    values = data.aws_ec2_instance_type_offerings.supported_azs.locations
   }
 }
 
