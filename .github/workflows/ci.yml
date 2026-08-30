@@ -75,3 +75,35 @@ jobs:
 
       - name: Build combined image
         run: docker build -f Dockerfile.combined -t jgaltidor/sudoku-solver-modern:latest .
+
+  # Catches malformed Terraform/Packer in deploy/ before it reaches a real
+  # `terraform apply` -- the IaC analogue of the docker-build job. No AWS
+  # credentials: `validate` and `fmt` are offline checks (init runs with
+  # -backend=false and still needs the provider plugin, which is a public
+  # download).
+  deploy-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      - name: Terraform fmt
+        run: terraform fmt -check -recursive deploy/
+
+      - name: Terraform validate
+        working-directory: deploy/terraform
+        run: |
+          terraform init -backend=false
+          terraform validate
+
+      - uses: hashicorp/setup-packer@v3
+
+      - name: Packer fmt + validate
+        working-directory: deploy/packer
+        run: |
+          packer fmt -check .
+          packer init .
+          packer validate .

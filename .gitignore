@@ -12,3 +12,15 @@ frontend/dist/
 # added later, is project config and should still be tracked)
 .claude/settings.local.json
 .claude/*.tmp.*
+
+# deploy/ (Terraform + Packer). Configs and .terraform.lock.hcl are tracked;
+# state, local var files, and the provider plugin cache are not.
+deploy/**/.terraform/
+deploy/**/*.tfstate
+deploy/**/*.tfstate.*
+deploy/**/*.tfvars
+!deploy/**/*.tfvars.example
+deploy/**/crash.log
+deploy/**/crash.*.log
+deploy/packer/*.pkrvars.hcl
+deploy/packer/manifest.json
