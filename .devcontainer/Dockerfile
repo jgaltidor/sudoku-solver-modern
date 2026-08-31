@@ -1,10 +1,16 @@
-# Devcontainer base image. Was a bare `"image":` in devcontainer.json until
-# Packer needed installing -- Terraform and the AWS CLI come from official
-# devcontainer features (see devcontainer.json), but there is no official/
-# maintained devcontainer feature for Packer, and HashiCorp's apt repo has no
-# suite for this base's Debian release (trixie) yet. So Packer is installed
-# here, at image-build time (cached, not re-run on every container start),
-# from the same kind of release zip the official `terraform` feature uses.
+# Devcontainer base image. Was a bare `"image":` in devcontainer.json until the
+# deploy tooling landed. Terraform and the AWS CLI come from official
+# devcontainer features (see devcontainer.json); the two things below have no
+# maintained feature, so they're installed here at image-build time (cached,
+# not re-run on every container start):
+#
+#   - Packer          -- HashiCorp's apt repo has no suite for this base's
+#                        Debian release (trixie); install the release zip, the
+#                        same way the official `terraform` feature does.
+#   - session-manager-plugin -- required by `aws ssm start-session`, which is
+#                        how you get a shell on the deployed EC2 instance
+#                        (deploy/ uses SSM, not SSH). AWS ships it only as a
+#                        distro package, not via the aws-cli feature.
 #
 # Keep the tag in sync with what the feature set expects (a devcontainers
 # Python image). Bump PACKER_VERSION by hand: https://releases.hashicorp.com/packer/
@@ -17,3 +23,14 @@ RUN arch="$(dpkg --print-architecture)" \
     && rm /tmp/packer.zip \
     && chmod +x /usr/local/bin/packer \
     && packer version
+
+RUN arch="$(dpkg --print-architecture)" \
+    && case "$arch" in \
+    amd64) smp_dir=ubuntu_64bit ;; \
+    arm64) smp_dir=ubuntu_arm64 ;; \
+    *) echo "unsupported arch: $arch" >&2; exit 1 ;; \
+    esac \
+    && curl -fsSL "https://s3.amazonaws.com/session-manager-downloads/plugin/latest/${smp_dir}/session-manager-plugin.deb" -o /tmp/smp.deb \
+    && dpkg -i /tmp/smp.deb \
+    && rm /tmp/smp.deb \
+    && session-manager-plugin --version

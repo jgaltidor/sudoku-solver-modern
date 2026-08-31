@@ -10,9 +10,9 @@ set -euxo pipefail
 dnf install -y docker
 systemctl enable --now docker
 
-# So `docker ...` works without sudo over SSH as ec2-user (the debug/update
-# commands in deploy/README.md assume this).
-usermod -aG docker ec2-user
+# Shell access is via SSM Session Manager, which lands you as `ssm-user` with
+# passwordless sudo -- so the debug/update commands in deploy/README.md use
+# `sudo docker`. No docker group membership to set up (no interactive login).
 
 # Retry the pull -- a transient Docker Hub hiccup during first boot would
 # otherwise abort this script (set -e) before the container is ever created,

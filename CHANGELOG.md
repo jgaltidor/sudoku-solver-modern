@@ -8,6 +8,29 @@ History before this file starts is in the git log.
 
 ## [Unreleased]
 
+### Changed
+
+- **Terraform state moved to S3** (`deploy/terraform/backend.tf`) — deployment
+  now works from any machine with AWS credentials, and every state write is
+  versioned + lock-protected. The bucket is created once per account by the new
+  `deploy/bootstrap/` config.
+- **Instance access switched from SSH to SSM Session Manager.** No key pair, no
+  open port 22; `deploy/terraform/iam.tf` attaches an instance role with
+  `AmazonSSMManagedInstanceCore`. Shell in with `aws ssm start-session`. The
+  `ssh_ingress_cidr` / `ssh_public_key_path` variables and the `ssh_command`
+  output are gone; `ssm_command` replaces the last.
+- `deploy/iam-policy.json` expanded for the above (S3 state bucket, the instance
+  IAM role/profile, `ssm:StartSession`).
+- `deploy/terraform` needs no `terraform.tfvars` now — every variable has a
+  default.
+
+### Added
+
+- `scripts/deploy.sh` gained `stop` / `start` / `destroy` subcommands alongside
+  the default deploy.
+- Devcontainer carries `session-manager-plugin` (for `aws ssm start-session`).
+- `deploy/README.md`: "Deploying as a second developer" section.
+
 ## [0.1.0] - 2026-08-31
 
 First tagged release: the Sudoku-solving web service (FastAPI + OR-Tools CP-SAT
