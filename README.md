@@ -51,7 +51,10 @@ Run this from a regular host terminal, not a VS Code devcontainer terminal -- se
 
 ### VS Code devcontainer (for editing)
 
-Prerequisites: git, VS Code with the
+New to dev containers? VS Code's [Developing inside a Container](https://code.visualstudio.com/docs/devcontainers/containers)
+guide explains the concept and the workflow below.
+
+Prerequisites: git, [VS Code](https://code.visualstudio.com/) with the
 [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers),
 and Docker Desktop/Engine (only to build the devcontainer itself).
 

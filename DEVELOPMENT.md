@@ -6,7 +6,11 @@ Compose, and plain local), testing, linting, the CLI, and how this repo compares
 
 ## Quick start (devcontainer)
 
-Every command here runs **inside the devcontainer** -- nothing on the host.
+Every command here runs **inside the devcontainer** -- nothing on the host. New to dev containers?
+VS Code's [Developing inside a Container](https://code.visualstudio.com/docs/devcontainers/containers)
+guide covers the concept; you need [VS Code](https://code.visualstudio.com/), its
+[Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers),
+and Docker Desktop/Engine running.
 
 1. **Open it.** Clone the repo, open the folder in VS Code, then run **"Dev Containers: Reopen in
    Container"** (or click the prompt). The first open takes a few minutes -- it builds the image and
