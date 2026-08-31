@@ -1,8 +1,53 @@
 # Development
 
-Full reference for this repo beyond the quick start in [README.md](README.md): directory layout, the
-full day-to-day dev loop (devcontainer, Docker Compose, and plain local), testing, linting, the CLI, and
-how this repo compares to the old one.
+Full reference for this repo: directory layout, the full day-to-day dev loop (devcontainer, Docker
+Compose, and plain local), testing, linting, the CLI, and how this repo compares to the old one. The
+**Quick start** just below is the whole run/test loop in one place; the sections after it go deep.
+
+## Quick start (devcontainer)
+
+Every command here runs **inside the devcontainer** -- nothing on the host. New to dev containers?
+VS Code's [Developing inside a Container](https://code.visualstudio.com/docs/devcontainers/containers)
+guide covers the concept; you need [VS Code](https://code.visualstudio.com/), its
+[Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers),
+and Docker Desktop/Engine running.
+
+1. **Open it.** Clone the repo, open the folder in VS Code, then run **"Dev Containers: Reopen in
+   Container"** (or click the prompt). The first open takes a few minutes -- it builds the image and
+   runs `uv sync` + `npm install` for you.
+
+2. **Run the app** -- backend + frontend as live-reloading native processes:
+
+   ```bash
+   scripts/run.sh
+   ```
+
+   Backend: <http://localhost:8000> (`GET /health`, `POST /solve`). Frontend:
+   <http://localhost:3000>. Edits under `src/` and `frontend/` take effect on save. `Ctrl+C` stops both.
+
+3. **Test:**
+
+   ```bash
+   uv run pytest tests/                # backend + solver
+   npm run test --prefix frontend      # frontend (vitest)
+   ```
+
+4. **Lint / format:**
+
+   ```bash
+   uv run ruff check . && uv run ruff format --check .
+   npm run lint --prefix frontend && npm run format:check --prefix frontend
+   ```
+
+5. **Solve a board from the CLI** (no server needed):
+
+   ```bash
+   scripts/solver.sh example_inputs/solve_input_example.json
+   ```
+
+These are the same checks CI runs (`.github/workflows/ci.yml`). No `docker compose up` anywhere --
+`scripts/run.sh` is its devcontainer-native equivalent (see [Running it](#running-it) for why, and
+for the Docker Compose path when you specifically need to exercise the container/Compose wiring).
 
 ## Layout
 
@@ -41,21 +86,27 @@ Dockerfile             # backend image
 docker-compose.yml      # backend + frontend together
 Dockerfile.combined              # single-image build: bundled frontend + backend, one port
 Dockerfile.combined.dockerignore # per-Dockerfile ignore override (root .dockerignore excludes frontend/)
-.devcontainer/          # VS Code Dev Container (Python 3.12 base + a Dockerfile that adds Packer)
+.devcontainer/          # VS Code Dev Container -- Python 3.12 + Node + the full deploy toolchain
+                        # (Terraform/AWS CLI/tflint via features; Packer/session-manager-plugin/
+                        # shellcheck via .devcontainer/Dockerfile)
 ```
 
 ## Running it
 
-This is split by *where you're running the command from* -- devcontainer, host machine, or neither --
-since a command from the wrong section can fail in confusing ways (or silently do the wrong thing) in
-the other two.
+**Almost everything runs from the devcontainer** -- the dev loop, tests, linters, the CLI, and the
+whole `deploy/` toolchain (Terraform, Packer, `aws`, `aws ssm start-session`). The **one** exception
+is `docker compose up` (and `scripts/dev-run.sh`, which wraps it), which has to run from a host
+terminal -- the [Docker Compose (host machine)](#docker-compose-host-machine) section explains why
+and what to use instead. [Local, no Docker](#local-no-docker) is the same dev loop with no container
+at all, for a plain host shell.
 
 ### Devcontainer
 
 Open this repo in VS Code and reopen in the container (`.devcontainer/devcontainer.json`) for a full-stack
 dev environment: Python (package + dev deps installed via `uv`), Node (via the `node` feature, so
-`frontend/`'s npm deps are installed too), and the Docker CLI (via `docker-outside-of-docker`, wired up
-against the host's own Docker daemon). (Unlike the old repo's devcontainer, no manual
+`frontend/`'s npm deps are installed too), the Docker CLI (via `docker-outside-of-docker`, wired up
+against the host's own Docker daemon), and the `deploy/` toolchain (`terraform`, `packer`, `aws`,
+`tflint`, `session-manager-plugin`). (Unlike the old repo's devcontainer, no manual
 static-binary/glibc-shim workarounds were needed for any of this -- this image's Debian 13 base has none
 of xenial's compatibility constraints.)
 
@@ -85,6 +136,10 @@ a bind mount, so the host-daemon path mismatch described below doesn't apply to 
 
 **Test / lint:** see [Testing](#testing) and [Linting and formatting](#linting-and-formatting) below --
 both run identically in the devcontainer, no Docker involved.
+
+**Deploy:** `scripts/deploy.sh` and everything under `deploy/` run from here too -- the devcontainer
+carries `terraform`, `packer`, `aws`, `tflint`, `session-manager-plugin`, and Docker with `buildx`.
+Needs `aws configure` + `docker login` done once first; see [Deploying](#deploying) below.
 
 Its `.venv` lives at `/home/vscode/.venv` (`UV_PROJECT_ENVIRONMENT`), not the default `./.venv` --
 that default would land inside this bind-mounted workspace and collide with a host checkout's own
@@ -159,10 +214,11 @@ cd frontend && npm install && npm start
 
 ## Deploying
 
-Local dev never touches this. To run the combined production image on an AWS EC2
-instance, see **[deploy/README.md](deploy/README.md)** for the full walkthrough
-(IAM user, `aws configure`, one-time S3 state bucket, image push, deploy, verify,
-stop/start, teardown). `scripts/deploy.sh` wraps the lifecycle:
+Local dev never touches this, but it all runs from the devcontainer (or any machine
+with the toolchain + AWS credentials). To run the combined production image on an
+AWS EC2 instance, see **[deploy/README.md](deploy/README.md)** for the full
+walkthrough (IAM user, `aws configure`, one-time S3 state bucket, image push,
+deploy, verify, stop/start, teardown). `scripts/deploy.sh` wraps the lifecycle:
 `scripts/deploy.sh` (deploy), `stop`, `start`, `destroy`.
 
 Terraform state lives in an **S3 bucket** (`deploy/terraform/backend.tf`), created
