@@ -2,6 +2,8 @@
 # Runs once, as root, on the instance's first boot (cloud-init). Terraform
 # renders ${docker_image} in via templatefile() -- see instance.tf.
 #
+# shellcheck disable=SC2154  # ${docker_image} is a templatefile() var, not shell
+#
 # Kept deliberately tiny: install Docker, start it, run the container with a
 # restart policy so it survives reboots and daemon restarts. Everything else
 # (the frontend build, the Python deps) is already baked into the image.

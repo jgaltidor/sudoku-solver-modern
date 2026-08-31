@@ -113,3 +113,9 @@ jobs:
           packer fmt -check .
           packer init .
           packer validate .
+
+      # shellcheck is preinstalled on ubuntu-latest runners; it also ships in
+      # the devcontainer (.devcontainer/Dockerfile) and backs the editor
+      # extension, so keep the two in step.
+      - name: Shellcheck
+        run: shellcheck scripts/*.sh deploy/terraform/user_data.sh
