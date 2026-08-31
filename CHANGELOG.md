@@ -8,6 +8,13 @@ History before this file starts is in the git log.
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-08-31
+
+First tagged release: the Sudoku-solving web service (FastAPI + OR-Tools CP-SAT
+backend, React/Vite frontend), the three Docker image variants
+(`Dockerfile`, `frontend/Dockerfile`, `Dockerfile.combined`), and the AWS EC2
+deployment below. Everything prior is in the git log.
+
 ### Added
 
 - **AWS EC2 deployment** (`deploy/`). Terraform provisions one instance in the
