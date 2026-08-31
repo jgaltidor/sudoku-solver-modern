@@ -74,6 +74,7 @@ Deploy to AWS EC2 (from repo root, full walkthrough in `deploy/README.md`):
 ```bash
 scripts/deploy.sh                  # build+push linux/amd64 image, then `terraform apply`
 scripts/deploy.sh deploy --skip-image   # just `terraform apply` (image already current)
+scripts/deploy.sh status           # current URL / instance id / power state / health
 scripts/deploy.sh stop / start     # pause / resume the instance (start prints the new IP)
 scripts/deploy.sh destroy          # tear it all down (~$0; state bucket is left behind)
 cd deploy/terraform && terraform output app_url   # http://<public-ip> (also: instance_id, ssm_command)
@@ -109,7 +110,7 @@ scripts/
   solver.sh         # convenience wrapper: `uv run scripts/solver.py`, args forwarded as-is
   example_solve.py  # worked example invocation of scripts/solver.py
   publish.sh        # push the backend/frontend images and the combined image to Docker Hub
-  deploy.sh         # deploy / stop / start / destroy the AWS EC2 environment (see deploy/)
+  deploy.sh         # deploy / status / stop / start / destroy the AWS EC2 environment (see deploy/)
 example_inputs/
   solve_input_example.json  # sample board used by scripts/example_solve.py
 CHANGELOG.md       # notable changes per release (Keep a Changelog format)

@@ -119,10 +119,12 @@ instance_id = "i-0abc..."
 
 The container image pull happens on first boot — give it 1–2 minutes.
 
-> **Where the live values live.** `terraform output` (from `deploy/terraform/`) is the source of
-> truth for the current public IP, DNS name, and instance ID. Don't copy them into docs or scripts —
-> the **public IP changes on every stop/start** and the **instance ID changes on replacement**.
-> State is in S3 now, so it isn't tied to one machine and every write is versioned.
+> **Where the live values live.** `scripts/deploy.sh status` prints the current URL, instance ID,
+> power state, and a health check (`terraform output` from `deploy/terraform/` is the underlying
+> source of truth). Don't copy those into docs or scripts — the **public IP changes on every
+> stop/start** and the **instance ID changes on replacement**. See
+> [Finding the live environment](#finding-the-live-environment) for the console route and the values
+> that *are* stable.
 
 ---
 
@@ -191,6 +193,38 @@ scripts/deploy.sh destroy         # removes the instance, security group, IAM ro
 
 Back to ~$0. The **state bucket is left behind on purpose** (it must outlive the deployment, and
 costs pennies). To remove it too, after `destroy`: `cd deploy/bootstrap && terraform destroy`.
+
+---
+
+## Finding the live environment
+
+There is **no published URL** — this is a personal, mostly-stopped deployment with no Elastic IP, so
+the public IP and instance ID change over time. Nothing external depends on them, and they are not
+written down anywhere on purpose (a committed value would be stale within a stop/start).
+
+**Get the current address:**
+
+| From | How |
+|---|---|
+| the repo (with AWS creds) | `scripts/deploy.sh status` — URL, instance ID, power state, health check |
+| " | or `cd deploy/terraform && terraform output` for the raw values |
+| the AWS console | EC2 → Instances → filter by tag **`Project` = `sudoku-solver-modern`** → the running one's *Public IPv4 address* |
+
+**Values that don't change** (safe to rely on / write down):
+
+| | |
+|---|---|
+| Region | `us-east-1` |
+| Account | `164892691333` |
+| Security group name | `sudoku-solver-modern-app` |
+| Instance IAM role / profile | `sudoku-solver-modern-instance` |
+| State bucket | `sudoku-solver-modern-tfstate-164892691333` (`deploy/terraform/backend.tf`) |
+| Config knobs + defaults | `deploy/terraform/variables.tf` |
+
+**If this ever needs to be a real always-on service with users:** give it a stable address —
+an Elastic IP (~$3.60/mo, billed while stopped) or a domain + Route 53 record, plus HTTPS (Caddy or
+an ALB + ACM cert) — and *then* publish that URL in the top-level README. Deliberately not done here:
+it's a learning box that's usually turned off.
 
 ---
 
