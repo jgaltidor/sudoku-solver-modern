@@ -10,6 +10,19 @@ set -euxo pipefail
 dnf install -y docker
 systemctl enable --now docker
 
+# So `docker ...` works without sudo over SSH as ec2-user (the debug/update
+# commands in deploy/README.md assume this).
+usermod -aG docker ec2-user
+
+# Retry the pull -- a transient Docker Hub hiccup during first boot would
+# otherwise abort this script (set -e) before the container is ever created,
+# and --restart cannot recover a container that does not exist.
+for attempt in 1 2 3 4 5; do
+  docker pull "${docker_image}" && break
+  echo "docker pull attempt $attempt failed; retrying in 15s" >&2
+  sleep 15
+done
+
 docker run -d \
   --name sudoku \
   --restart unless-stopped \

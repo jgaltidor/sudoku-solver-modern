@@ -18,7 +18,9 @@ frontend/dist/
 deploy/**/.terraform/
 deploy/**/*.tfstate
 deploy/**/*.tfstate.*
-deploy/**/*.tfvars
+# *.tfvars* (not just *.tfvars) so *.auto.tfvars, .tfvars.json and editor
+# backups are covered too -- which is what makes the .example negation matter.
+deploy/**/*.tfvars*
 !deploy/**/*.tfvars.example
 deploy/**/crash.log
 deploy/**/crash.*.log

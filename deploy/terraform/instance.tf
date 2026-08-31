@@ -15,9 +15,11 @@ resource "aws_key_pair" "app" {
 }
 
 resource "aws_instance" "app" {
-  ami                         = local.ami_id
-  instance_type               = var.instance_type
-  subnet_id                   = data.aws_subnets.default.ids[0]
+  ami           = local.ami_id
+  instance_type = var.instance_type
+  # sort() -- the provider does not guarantee aws_subnets returns ids in a
+  # stable order, and subnet_id forces instance replacement if it changes.
+  subnet_id                   = sort(data.aws_subnets.default.ids)[0]
   vpc_security_group_ids      = [aws_security_group.app.id]
   key_name                    = aws_key_pair.app.key_name
   associate_public_ip_address = true # default-VPC subnets already do this; explicit so it holds regardless
@@ -32,6 +34,15 @@ resource "aws_instance" "app" {
   root_block_device {
     volume_type = "gp3"
     volume_size = 8
+  }
+
+  lifecycle {
+    # local.ami_id resolves to the *latest* AL2023 image every plan, and `ami`
+    # forces replacement -- without this, an unrelated later `apply` (a tag
+    # tweak, a var change) would destroy and recreate the running instance
+    # whenever AWS has published a newer AMI since. To deliberately re-image,
+    # set var.ami_id or `terraform apply -replace=aws_instance.app`.
+    ignore_changes = [ami]
   }
 
   tags = {
