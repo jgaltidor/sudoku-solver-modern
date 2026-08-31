@@ -32,7 +32,7 @@ tf_init() { tf init -input=false >/dev/null; }
 usage() { sed -n '2,14p' "$0"; }
 
 cmd="${1:-deploy}"
-[ $# -gt 0 ] && shift || true
+if [ $# -gt 0 ]; then shift; fi
 
 case "$cmd" in
   -h | --help | help)
