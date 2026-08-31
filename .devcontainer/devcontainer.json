@@ -77,6 +77,11 @@
   //   frontend/ actually having ESLint/Prettier config -- inert until then,
   //   see CLAUDE.md's note that frontend/ currently has no lint/format step
   // - hashicorp.terraform: syntax + validation for deploy/terraform/*.tf
+  // - hashicorp.hcl: the non-Terraform HCL -- deploy/packer/*.pkr.hcl and the
+  //   *.terraform.lock.hcl files (the terraform extension only claims *.tf).
+  //   Defers to hashicorp.terraform on *.tf, so having both is fine.
+  // - timonwong.shellcheck: inline shellcheck for scripts/*.sh and
+  //   deploy/terraform/user_data.sh (shellcheck binary is in the Dockerfile)
   "customizations": {
     "vscode": {
       "extensions": [
@@ -89,7 +94,9 @@
         "tamasfe.even-better-toml",
         "dbaeumer.vscode-eslint",
         "esbenp.prettier-vscode",
-        "hashicorp.terraform"
+        "hashicorp.terraform",
+        "hashicorp.hcl",
+        "timonwong.shellcheck"
       ],
       // customizations.vscode.settings, not a checked-in .vscode/settings.json:
       // this path only exists inside the container (see containerEnv's

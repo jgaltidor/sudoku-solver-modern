@@ -1,6 +1,6 @@
 # Devcontainer base image. Was a bare `"image":` in devcontainer.json until the
 # deploy tooling landed. Terraform and the AWS CLI come from official
-# devcontainer features (see devcontainer.json); the two things below have no
+# devcontainer features (see devcontainer.json); the things below have no
 # maintained feature, so they're installed here at image-build time (cached,
 # not re-run on every container start):
 #
@@ -11,10 +11,17 @@
 #                        how you get a shell on the deployed EC2 instance
 #                        (deploy/ uses SSM, not SSH). AWS ships it only as a
 #                        distro package, not via the aws-cli feature.
+#   - shellcheck       -- backs the timonwong.shellcheck extension and is the
+#                        linter used on scripts/*.sh; from Debian apt.
 #
 # Keep the tag in sync with what the feature set expects (a devcontainers
 # Python image). Bump PACKER_VERSION by hand: https://releases.hashicorp.com/packer/
 FROM mcr.microsoft.com/devcontainers/python:3.12
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends shellcheck \
+    && rm -rf /var/lib/apt/lists/* \
+    && shellcheck --version
 
 ARG PACKER_VERSION=1.16.0
 RUN arch="$(dpkg --print-architecture)" \
