@@ -8,6 +8,8 @@ call rather than a dynamically-compiled OCaml toplevel invocation.
 
 from __future__ import annotations
 
+from importlib.metadata import PackageNotFoundError
+from importlib.metadata import version as _pkg_version
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -17,7 +19,16 @@ from pydantic import BaseModel, field_validator
 from .board import BOARD_SIZE
 from .solver import solve as solve_board
 
-app = FastAPI(title="Sudoku Solver", version="0.1.0")
+# Version from package metadata (pyproject.toml), not a hand-maintained literal
+# that silently drifts. Shows up in /openapi.json and /docs. The package is
+# always installed here (editable in dev, wheel in Docker); the fallback is just
+# belt-and-braces.
+try:
+    _version = _pkg_version("sudoku-solver")
+except PackageNotFoundError:
+    _version = "0.0.0"
+
+app = FastAPI(title="Sudoku Solver", version=_version)
 
 
 class SolveRequest(BaseModel):

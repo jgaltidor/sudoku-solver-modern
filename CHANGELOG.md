@@ -8,6 +8,12 @@ History before this file starts is in the git log.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-08-31
+
+Deployment hardening: shared remote state and keyless instance access. **Breaking
+for existing deployments** — see `deploy/README.md` "Migrating an existing
+(pre-SSM, local-state) deployment".
+
 ### Changed
 
 - **Terraform state moved to S3** (`deploy/terraform/backend.tf`) — deployment
@@ -30,6 +36,11 @@ History before this file starts is in the git log.
   the default deploy.
 - Devcontainer carries `session-manager-plugin` (for `aws ssm start-session`).
 - `deploy/README.md`: "Deploying as a second developer" section.
+
+### Fixed
+
+- The FastAPI `version` (in `/openapi.json` and `/docs`) now reads from package
+  metadata instead of a hand-maintained literal that had drifted.
 
 ## [0.1.0] - 2026-08-31
 
