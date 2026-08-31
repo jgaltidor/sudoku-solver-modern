@@ -17,6 +17,9 @@ of shelling out per request).
 Do not commit directly to `master`. Create a feature branch, commit your changes there, and open a
 GitHub pull request via `gh`.
 
+Add an entry under `## [Unreleased]` in `CHANGELOG.md` for user-visible changes (features, fixes,
+behavior/config changes) — not for pure refactors, test-only, or CI-only churn.
+
 ## Commands
 
 Devcontainer, both services at once (from repo root):
@@ -67,16 +70,18 @@ docker build -f Dockerfile.combined -t jgaltidor/sudoku-solver-modern:latest .  
 scripts/publish.sh          # push the dev-loop images plus the combined one to Docker Hub (docker login + the build commands above first)
 ```
 
-Deploy to AWS EC2 (from `deploy/`, full walkthrough in `deploy/README.md`):
+Deploy to AWS EC2 (from repo root, full walkthrough in `deploy/README.md`):
 ```bash
-docker buildx build --platform linux/amd64 -f Dockerfile.combined \
-  -t jgaltidor/sudoku-solver-modern:latest --push .   # publish the image the instance pulls
-cd deploy/terraform && terraform init && terraform apply   # provision the EC2 instance
-terraform output app_url                                    # http://<public-ip>
-terraform destroy                                           # tear it all down (~$0)
+scripts/deploy.sh                  # build+push linux/amd64 image, then `terraform apply`
+scripts/deploy.sh --skip-image     # just `terraform apply` (image already current)
+cd deploy/terraform && terraform output app_url   # http://<public-ip> (also: instance_id)
+cd deploy/terraform && terraform destroy          # tear it all down (~$0)
 ```
-Needs `aws configure` done first (see `deploy/iam-policy.json` for a least-privilege deploy user).
-The devcontainer carries `terraform`, `packer`, `aws`, and `tflint`.
+Needs `aws configure` + `docker login` + `deploy/terraform/terraform.tfvars` first (see
+`deploy/README.md`; `deploy/iam-policy.json` is the least-privilege deploy-user policy). The
+devcontainer carries `terraform`, `packer`, `aws`, and `tflint`. Terraform state is local
+(`deploy/terraform/terraform.tfstate`, gitignored) — `terraform output` is the only record of the
+live instance's IP/ID, and both change (IP on stop/start, ID on replacement).
 
 CI (`.github/workflows/ci.yml`) runs four jobs on push/PR: `test` (`uv sync --extra dev`, `pytest`,
 `ruff check`, `ruff format --check`), `frontend` (`npm ci`, `vitest`, `eslint`, `prettier --check`, `vite
@@ -102,8 +107,10 @@ scripts/
   solver.sh         # convenience wrapper: `uv run scripts/solver.py`, args forwarded as-is
   example_solve.py  # worked example invocation of scripts/solver.py
   publish.sh        # push the backend/frontend images and the combined image to Docker Hub
+  deploy.sh         # build+push the combined image, then `terraform apply` (see deploy/)
 example_inputs/
   solve_input_example.json  # sample board used by scripts/example_solve.py
+CHANGELOG.md       # notable changes per release (Keep a Changelog format)
 deploy/            # AWS EC2 deployment -- not needed for local dev (see deploy/README.md)
   terraform/       # provisions one EC2 instance in the default VPC; user_data installs Docker + runs the image on :80
   packer/          # OPTIONAL: bakes an AMI with Docker pre-installed (docker-ami.pkr.hcl) -- deployment works without it

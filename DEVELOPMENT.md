@@ -22,19 +22,25 @@ scripts/
   solver.sh         # convenience wrapper: `uv run scripts/solver.py`, args forwarded as-is
   example_solve.py  # worked example invocation of scripts/solver.py
   publish.sh        # push the backend/frontend images and the combined image to Docker Hub
+  deploy.sh         # build+push the combined image, then `terraform apply` (see deploy/)
 example_inputs/
   solve_input_example.json  # sample board used by scripts/example_solve.py
+deploy/            # AWS EC2 deployment (not needed for local dev) -- see deploy/README.md
+  terraform/       # provisions one EC2 instance; user_data installs Docker + runs the image on :80
+  packer/          # OPTIONAL: bake a Docker-preinstalled AMI
+  iam-policy.json  # least-privilege policy for the deploy IAM user
 tests/
   cases/       # input boards (also used as POST bodies directly)
   expected/    # expected has_solution / solved_board per case
   test_solver.py  # solver-level tests
   test_api.py      # same cases, through FastAPI's TestClient
 uv.lock                # pinned dependency versions (uv)
+CHANGELOG.md            # notable changes per release
 Dockerfile             # backend image
 docker-compose.yml      # backend + frontend together
 Dockerfile.combined              # single-image build: bundled frontend + backend, one port
 Dockerfile.combined.dockerignore # per-Dockerfile ignore override (root .dockerignore excludes frontend/)
-.devcontainer/          # VS Code Dev Container (Python 3.12 image, no custom build needed)
+.devcontainer/          # VS Code Dev Container (Python 3.12 base + a Dockerfile that adds Packer)
 ```
 
 ## Running it
@@ -149,6 +155,21 @@ uv run uvicorn sudoku_solver.api:app --reload
 ```bash
 cd frontend && npm install && npm start
 ```
+
+## Deploying
+
+Local dev never touches this. To run the combined production image on an AWS EC2
+instance, see **[deploy/README.md](deploy/README.md)** for the full walkthrough
+(IAM user, `aws configure`, image push, `terraform apply`, verify, stop/start,
+`terraform destroy`). Once set up, `scripts/deploy.sh` does the build+push+apply
+in one step.
+
+Terraform state is **local** (`deploy/terraform/terraform.tfstate`, gitignored)
+and is the only record of what was created -- run `terraform output` from
+`deploy/terraform/` for the current instance ID / public IP (both change: the IP
+on every stop/start, the instance ID on replacement). Don't hardcode them
+anywhere. If you care about not orphaning the instance, back that state file up,
+or move it to an S3 backend.
 
 ## Testing
 

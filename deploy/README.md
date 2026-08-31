@@ -112,6 +112,14 @@ instance_id = "i-0abc..."
 
 The container image pull happens on first boot — give it 1–2 minutes.
 
+> **Where the live values live.** `terraform output` (run from `deploy/terraform/`)
+> is the source of truth for the current public IP, DNS name, and instance ID.
+> Don't copy them into docs or scripts — the **public IP changes on every
+> stop/start** and the **instance ID changes on replacement**. The only record
+> that the instance exists is the local state file `deploy/terraform/terraform.tfstate`
+> (gitignored) — if you lose it you can't `terraform destroy` cleanly, so back it
+> up or move to an S3 backend if that matters to you.
+
 ---
 
 ## 4. Verify
