@@ -93,8 +93,14 @@ jobs:
       - name: Terraform fmt
         run: terraform fmt -check -recursive deploy/
 
-      - name: Terraform validate
+      - name: Terraform validate (deployment)
         working-directory: deploy/terraform
+        run: |
+          terraform init -backend=false
+          terraform validate
+
+      - name: Terraform validate (state bucket bootstrap)
+        working-directory: deploy/bootstrap
         run: |
           terraform init -backend=false
           terraform validate

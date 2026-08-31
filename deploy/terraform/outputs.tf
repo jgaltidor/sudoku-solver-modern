@@ -13,12 +13,12 @@ output "app_url" {
   value       = "http://${aws_instance.app.public_ip}"
 }
 
-output "ssh_command" {
-  description = "SSH into the instance (uses the private key matching var.ssh_public_key_path)."
-  value       = "ssh ec2-user@${aws_instance.app.public_ip}"
+output "ssm_command" {
+  description = "Open a shell on the instance (needs the session-manager-plugin; it's in the devcontainer)."
+  value       = "aws ssm start-session --target ${aws_instance.app.id}"
 }
 
 output "instance_id" {
-  description = "Instance ID, for `aws ec2 stop-instances` / `start-instances`."
+  description = "Instance ID, for `aws ec2 stop-instances` / `start-instances` and SSM."
   value       = aws_instance.app.id
 }

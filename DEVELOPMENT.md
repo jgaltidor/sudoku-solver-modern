@@ -22,10 +22,11 @@ scripts/
   solver.sh         # convenience wrapper: `uv run scripts/solver.py`, args forwarded as-is
   example_solve.py  # worked example invocation of scripts/solver.py
   publish.sh        # push the backend/frontend images and the combined image to Docker Hub
-  deploy.sh         # build+push the combined image, then `terraform apply` (see deploy/)
+  deploy.sh         # deploy / stop / start / destroy the AWS EC2 environment (see deploy/)
 example_inputs/
   solve_input_example.json  # sample board used by scripts/example_solve.py
 deploy/            # AWS EC2 deployment (not needed for local dev) -- see deploy/README.md
+  bootstrap/       # one-time: creates the S3 bucket that holds terraform/'s state
   terraform/       # provisions one EC2 instance; user_data installs Docker + runs the image on :80
   packer/          # OPTIONAL: bake a Docker-preinstalled AMI
   iam-policy.json  # least-privilege policy for the deploy IAM user
@@ -160,16 +161,19 @@ cd frontend && npm install && npm start
 
 Local dev never touches this. To run the combined production image on an AWS EC2
 instance, see **[deploy/README.md](deploy/README.md)** for the full walkthrough
-(IAM user, `aws configure`, image push, `terraform apply`, verify, stop/start,
-`terraform destroy`). Once set up, `scripts/deploy.sh` does the build+push+apply
-in one step.
+(IAM user, `aws configure`, one-time S3 state bucket, image push, deploy, verify,
+stop/start, teardown). `scripts/deploy.sh` wraps the lifecycle:
+`scripts/deploy.sh` (deploy), `stop`, `start`, `destroy`.
 
-Terraform state is **local** (`deploy/terraform/terraform.tfstate`, gitignored)
-and is the only record of what was created -- run `terraform output` from
-`deploy/terraform/` for the current instance ID / public IP (both change: the IP
-on every stop/start, the instance ID on replacement). Don't hardcode them
-anywhere. If you care about not orphaning the instance, back that state file up,
-or move it to an S3 backend.
+Terraform state lives in an **S3 bucket** (`deploy/terraform/backend.tf`), created
+once per account by `deploy/bootstrap/`. So `terraform` runs from any machine with
+AWS credentials, and every state write is versioned. Run `terraform output` from
+`deploy/terraform/` for the current instance ID / public IP — both change (IP on
+every stop/start, instance ID on replacement), so don't hardcode them anywhere.
+
+Shell access to the instance is **SSM Session Manager**, not SSH:
+`aws ssm start-session --target "$(terraform output -raw instance_id)"` (the
+`session-manager-plugin` is in the devcontainer). No key pair, no open port 22.
 
 ## Testing
 

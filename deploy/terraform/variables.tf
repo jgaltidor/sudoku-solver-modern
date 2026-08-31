@@ -25,21 +25,6 @@ variable "instance_type" {
   default     = "t3.micro"
 }
 
-variable "ssh_ingress_cidr" {
-  description = <<-EOT
-    CIDR allowed to reach port 22 (SSH). No default on purpose -- set it to
-    "<your-public-ip>/32" (get it with: curl -s https://checkip.amazonaws.com).
-    Use "0.0.0.0/0" only if you accept SSH being reachable from anywhere.
-  EOT
-  type        = string
-}
-
-variable "ssh_public_key_path" {
-  description = "Path to the SSH public key registered on the instance for the ec2-user login."
-  type        = string
-  default     = "~/.ssh/id_ed25519.pub"
-}
-
 variable "docker_image" {
   description = "Container image the instance pulls and runs on port 80."
   type        = string

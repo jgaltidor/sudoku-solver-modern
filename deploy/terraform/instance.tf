@@ -1,18 +1,11 @@
-# The instance itself, plus the SSH key pair it trusts.
+# The instance.
 #
 # No Elastic IP: AWS bills an EIP even while the instance is stopped, which
 # defeats the "keep it off to save money" plan. The trade-off is that the
 # public IP changes every stop/start -- re-read it with `terraform refresh &&
 # terraform output public_ip` (see deploy/README.md).
-
-resource "aws_key_pair" "app" {
-  key_name   = "${var.project_tag}-key"
-  public_key = trimspace(file(pathexpand(var.ssh_public_key_path)))
-
-  tags = {
-    Project = var.project_tag
-  }
-}
+#
+# No SSH key / no port 22: shell access is via SSM Session Manager (see iam.tf).
 
 resource "aws_instance" "app" {
   ami           = local.ami_id
@@ -21,7 +14,7 @@ resource "aws_instance" "app" {
   # stable order, and subnet_id forces instance replacement if it changes.
   subnet_id                   = sort(data.aws_subnets.default.ids)[0]
   vpc_security_group_ids      = [aws_security_group.app.id]
-  key_name                    = aws_key_pair.app.key_name
+  iam_instance_profile        = aws_iam_instance_profile.instance.name
   associate_public_ip_address = true # default-VPC subnets already do this; explicit so it holds regardless
 
   user_data = templatefile("${path.module}/user_data.sh", {

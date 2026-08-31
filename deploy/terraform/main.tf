@@ -1,14 +1,13 @@
 # Root config: provider, and the data sources that pick *where* (default VPC)
 # and *what* (latest Amazon Linux 2023 AMI) the instance runs on. The actual
-# resources are split into security_group.tf and instance.tf for readability --
-# Terraform loads every .tf file in this directory regardless.
+# resources are split across iam.tf / security_group.tf / instance.tf for
+# readability -- Terraform loads every .tf file in this directory regardless.
 #
-# State is local (a terraform.tfstate file next to these configs, gitignored).
-# That's fine for a single-operator learning deployment; a shared/team setup
-# would move it to an S3 backend with DynamoDB locking instead.
+# State lives in S3 (see backend.tf). Instance access is via SSM Session
+# Manager, not SSH (see iam.tf) -- there is no key pair and no open port 22.
 
 terraform {
-  required_version = ">= 1.5"
+  required_version = ">= 1.10" # backend.tf uses S3-native locking (use_lockfile)
 
   required_providers {
     aws = {

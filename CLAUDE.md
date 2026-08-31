@@ -73,15 +73,17 @@ scripts/publish.sh          # push the dev-loop images plus the combined one to 
 Deploy to AWS EC2 (from repo root, full walkthrough in `deploy/README.md`):
 ```bash
 scripts/deploy.sh                  # build+push linux/amd64 image, then `terraform apply`
-scripts/deploy.sh --skip-image     # just `terraform apply` (image already current)
-cd deploy/terraform && terraform output app_url   # http://<public-ip> (also: instance_id)
-cd deploy/terraform && terraform destroy          # tear it all down (~$0)
+scripts/deploy.sh deploy --skip-image   # just `terraform apply` (image already current)
+scripts/deploy.sh stop / start     # pause / resume the instance (start prints the new IP)
+scripts/deploy.sh destroy          # tear it all down (~$0; state bucket is left behind)
+cd deploy/terraform && terraform output app_url   # http://<public-ip> (also: instance_id, ssm_command)
 ```
-Needs `aws configure` + `docker login` + `deploy/terraform/terraform.tfvars` first (see
-`deploy/README.md`; `deploy/iam-policy.json` is the least-privilege deploy-user policy). The
-devcontainer carries `terraform`, `packer`, `aws`, and `tflint`. Terraform state is local
-(`deploy/terraform/terraform.tfstate`, gitignored) — `terraform output` is the only record of the
-live instance's IP/ID, and both change (IP on stop/start, ID on replacement).
+Needs `aws configure` + `docker login` + a one-time `cd deploy/bootstrap && terraform apply` (creates
+the S3 state bucket) first — see `deploy/README.md`; `deploy/iam-policy.json` is the least-privilege
+deploy-user policy. No `terraform.tfvars` needed (every var has a default). The devcontainer carries
+`terraform`, `packer`, `aws`, `tflint`, and `session-manager-plugin`. Terraform state is in S3
+(`deploy/terraform/backend.tf`), so deploy works from any machine with AWS creds. Shell access to the
+instance is `aws ssm start-session --target <id>` (SSM Session Manager) — no SSH, no open port 22.
 
 CI (`.github/workflows/ci.yml`) runs four jobs on push/PR: `test` (`uv sync --extra dev`, `pytest`,
 `ruff check`, `ruff format --check`), `frontend` (`npm ci`, `vitest`, `eslint`, `prettier --check`, `vite
@@ -107,11 +109,12 @@ scripts/
   solver.sh         # convenience wrapper: `uv run scripts/solver.py`, args forwarded as-is
   example_solve.py  # worked example invocation of scripts/solver.py
   publish.sh        # push the backend/frontend images and the combined image to Docker Hub
-  deploy.sh         # build+push the combined image, then `terraform apply` (see deploy/)
+  deploy.sh         # deploy / stop / start / destroy the AWS EC2 environment (see deploy/)
 example_inputs/
   solve_input_example.json  # sample board used by scripts/example_solve.py
 CHANGELOG.md       # notable changes per release (Keep a Changelog format)
 deploy/            # AWS EC2 deployment -- not needed for local dev (see deploy/README.md)
+  bootstrap/       # one-time: creates the S3 bucket that holds deploy/terraform/'s state
   terraform/       # provisions one EC2 instance in the default VPC; user_data installs Docker + runs the image on :80
   packer/          # OPTIONAL: bakes an AMI with Docker pre-installed (docker-ami.pkr.hcl) -- deployment works without it
   iam-policy.json  # least-privilege policy for the deploy IAM user
@@ -187,16 +190,25 @@ Key points:
   (currently `26`) — it was originally `"lts"`, which floats and had silently diverged from Docker/CI's
   pinned version; keep these three in sync by hand whenever one changes, since Dependabot's `docker`
   ecosystem PR for `frontend/Dockerfile` only ever touches that one file, not the other two.
-- **`deploy/` is self-contained and never touched by local dev or the app image.** Terraform state is
-  local + gitignored; `deploy/terraform/.terraform.lock.hcl` *is* committed (locked for linux and
-  macOS, amd64 + arm64). The deployed artifact is `Dockerfile.combined`'s image pulled from Docker Hub
-  — nothing in `deploy/` rebuilds it. `deploy/packer/` is an optional AMI-baking template kept for
-  learning; `user_data.sh` installs Docker at boot regardless, so a Packer AMI only makes first boot
-  faster (set `ami_id` in `terraform.tfvars` to use one). No Elastic IP is created on purpose (AWS
-  bills EIPs on stopped instances), so the instance's public IP changes across stop/start.
-- **The devcontainer gained a `.devcontainer/Dockerfile`** (was a bare `"image":`) solely so Packer
-  could be installed at build time — there is no maintained devcontainer feature for Packer and
-  HashiCorp's apt repo has no Debian-trixie suite. Terraform + AWS CLI *are* official features
-  (`devcontainer-lock.json` pins them). Bump `PACKER_VERSION` in the Dockerfile by hand. `~/.aws` is a
-  named volume (like `~/.claude` / `~/.config/gh`) so `aws configure` survives rebuilds; it's in the
-  `postCreateCommand` chown for the same root-owned-mountpoint reason as the others.
+- **`deploy/` is self-contained and never touched by local dev or the app image.** The deployed
+  artifact is `Dockerfile.combined`'s image pulled from Docker Hub — nothing in `deploy/` rebuilds it.
+  `deploy/packer/` is an optional AMI-baking template kept for learning; `user_data.sh` installs
+  Docker at boot regardless, so a Packer AMI only makes first boot faster (set `ami_id` in
+  `terraform.tfvars` to use one). No Elastic IP is created on purpose (AWS bills EIPs on stopped
+  instances), so the instance's public IP changes across stop/start.
+- **Terraform state is in S3** (`deploy/terraform/backend.tf`, S3-native locking via `use_lockfile`,
+  so `required_version >= 1.10`). The bucket is created once per account by `deploy/bootstrap/` (which
+  keeps its own tiny *local* state) and its name — `sudoku-solver-modern-tfstate-<account-id>` — is
+  hard-coded in `backend.tf`. `.terraform.lock.hcl` in both `deploy/terraform/` and `deploy/bootstrap/`
+  is committed (locked for linux + macOS, amd64 + arm64).
+- **Instance access is SSM Session Manager, not SSH.** `deploy/terraform/iam.tf` gives the instance a
+  role with `AmazonSSMManagedInstanceCore`; there is no key pair, no `ssh_*` variable, and the
+  security group opens only port 80. Shell in with `aws ssm start-session --target <id>` — you land as
+  `ssm-user` with passwordless sudo, so on-box `docker` commands need `sudo`.
+- **The devcontainer's `.devcontainer/Dockerfile`** (was a bare `"image":`) installs the two deploy
+  tools with no maintained devcontainer feature: **Packer** (HashiCorp's apt repo has no Debian-trixie
+  suite) and **`session-manager-plugin`** (`aws ssm start-session` needs it; AWS ships it distro-only).
+  Terraform + AWS CLI *are* official features (`devcontainer-lock.json` pins them). Bump
+  `PACKER_VERSION` by hand. `~/.aws` is a named volume (like `~/.claude` / `~/.config/gh`) so
+  `aws configure` survives rebuilds; it's in the `postCreateCommand` chown for the same
+  root-owned-mountpoint reason as the others.
