@@ -6,6 +6,7 @@
 #   scripts/deploy.sh [deploy]        build+push the linux/amd64 image, then `terraform apply`
 #   scripts/deploy.sh deploy --skip-image   skip the image build (image already current)
 #   scripts/deploy.sh deploy --plan         build+push, then `terraform plan` (no apply)
+#   scripts/deploy.sh status          print the current URL / instance id / power state / health
 #   scripts/deploy.sh stop            aws ec2 stop-instances  (pause compute billing; disk stays)
 #   scripts/deploy.sh start           aws ec2 start-instances (instance gets a new public IP)
 #   scripts/deploy.sh destroy         terraform destroy       (removes everything, ~$0)
@@ -29,7 +30,7 @@ instance_id() { tf output -raw instance_id; }
 # "Migrating an existing deployment" in deploy/README.md).
 tf_init() { tf init -input=false >/dev/null; }
 
-usage() { sed -n '2,14p' "$0"; }
+usage() { sed -n '2,15p' "$0"; }
 
 cmd="${1:-deploy}"
 if [ $# -gt 0 ]; then shift; fi
@@ -37,6 +38,33 @@ if [ $# -gt 0 ]; then shift; fi
 case "$cmd" in
   -h | --help | help)
     usage
+    ;;
+
+  status)
+    tf_init
+    if ! id=$(instance_id 2>/dev/null); then
+      echo "no deployment found -- run 'scripts/deploy.sh' to create one"
+      exit 0
+    fi
+    # Read the live values straight from AWS (the IP changes on stop/start; the
+    # id only changes on replacement). --output text tab-separates the list.
+    read -r state ip dns < <(aws ec2 describe-instances --instance-ids "$id" \
+      --query 'Reservations[0].Instances[0].[State.Name,PublicIpAddress,PublicDnsName]' \
+      --output text)
+    echo "instance:  $id"
+    echo "state:     $state"
+    if [ "$state" = running ] && [ "$ip" != None ]; then
+      echo "url:       http://$ip"
+      echo "dns:       http://$dns"
+      echo "ssm:       aws ssm start-session --target $id"
+      if curl -sf -o /dev/null -m 5 "http://$ip/health" 2>/dev/null; then
+        echo "health:    OK"
+      else
+        echo "health:    not responding (may still be booting -- give it a minute)"
+      fi
+    else
+      echo "(not running -- 'scripts/deploy.sh start' to boot it)"
+    fi
     ;;
 
   deploy)

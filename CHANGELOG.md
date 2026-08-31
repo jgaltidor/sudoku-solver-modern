@@ -8,6 +8,15 @@ History before this file starts is in the git log.
 
 ## [Unreleased]
 
+### Added
+
+- `scripts/deploy.sh status` — prints the deployed environment's current URL,
+  instance ID, power state, and a health check (the public IP / instance ID are
+  volatile and not written down anywhere, by design).
+- `deploy/README.md` "Finding the live environment" section — how to get the
+  current address (script, `terraform output`, or the console tag filter) and
+  which values *are* stable.
+
 ## [0.2.0] - 2026-08-31
 
 Deployment hardening: shared remote state and keyless instance access. **Breaking
