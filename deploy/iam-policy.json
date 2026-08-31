@@ -13,6 +13,8 @@
         "iam:GetRole",
         "iam:GetInstanceProfile",
         "iam:ListRolePolicies",
+        "iam:ListRoleTags",
+        "iam:ListInstanceProfileTags",
         "iam:ListAttachedRolePolicies",
         "iam:ListInstanceProfilesForRole"
       ],
@@ -74,28 +76,9 @@
       }
     },
     {
-      "Sid": "TerraformStateBucket",
+      "Sid": "TerraformStateBucketScopedFull",
       "Effect": "Allow",
-      "Action": [
-        "s3:CreateBucket",
-        "s3:PutBucketVersioning",
-        "s3:GetBucketVersioning",
-        "s3:PutBucketPublicAccessBlock",
-        "s3:GetBucketPublicAccessBlock",
-        "s3:PutEncryptionConfiguration",
-        "s3:GetEncryptionConfiguration",
-        "s3:PutLifecycleConfiguration",
-        "s3:GetLifecycleConfiguration",
-        "s3:PutBucketTagging",
-        "s3:GetBucketTagging",
-        "s3:GetBucketPolicy",
-        "s3:GetBucketAcl",
-        "s3:GetBucketLocation",
-        "s3:ListBucket",
-        "s3:GetObject",
-        "s3:PutObject",
-        "s3:DeleteObject"
-      ],
+      "Action": "s3:*",
       "Resource": [
         "arn:aws:s3:::sudoku-solver-modern-tfstate-*",
         "arn:aws:s3:::sudoku-solver-modern-tfstate-*/*"
