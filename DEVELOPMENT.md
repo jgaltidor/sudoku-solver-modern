@@ -1,8 +1,49 @@
 # Development
 
-Full reference for this repo beyond the quick start in [README.md](README.md): directory layout, the
-full day-to-day dev loop (devcontainer, Docker Compose, and plain local), testing, linting, the CLI, and
-how this repo compares to the old one.
+Full reference for this repo: directory layout, the full day-to-day dev loop (devcontainer, Docker
+Compose, and plain local), testing, linting, the CLI, and how this repo compares to the old one. The
+**Quick start** just below is the whole run/test loop in one place; the sections after it go deep.
+
+## Quick start (devcontainer)
+
+Every command here runs **inside the devcontainer** -- nothing on the host.
+
+1. **Open it.** Clone the repo, open the folder in VS Code, then run **"Dev Containers: Reopen in
+   Container"** (or click the prompt). The first open takes a few minutes -- it builds the image and
+   runs `uv sync` + `npm install` for you.
+
+2. **Run the app** -- backend + frontend as live-reloading native processes:
+
+   ```bash
+   scripts/run.sh
+   ```
+
+   Backend: <http://localhost:8000> (`GET /health`, `POST /solve`). Frontend:
+   <http://localhost:3000>. Edits under `src/` and `frontend/` take effect on save. `Ctrl+C` stops both.
+
+3. **Test:**
+
+   ```bash
+   uv run pytest tests/                # backend + solver
+   npm run test --prefix frontend      # frontend (vitest)
+   ```
+
+4. **Lint / format:**
+
+   ```bash
+   uv run ruff check . && uv run ruff format --check .
+   npm run lint --prefix frontend && npm run format:check --prefix frontend
+   ```
+
+5. **Solve a board from the CLI** (no server needed):
+
+   ```bash
+   scripts/solver.sh example_inputs/solve_input_example.json
+   ```
+
+These are the same checks CI runs (`.github/workflows/ci.yml`). No `docker compose up` anywhere --
+`scripts/run.sh` is its devcontainer-native equivalent (see [Running it](#running-it) for why, and
+for the Docker Compose path when you specifically need to exercise the container/Compose wiring).
 
 ## Layout
 

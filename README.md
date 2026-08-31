@@ -65,8 +65,8 @@ and Docker Desktop/Engine (only to build the devcontainer itself).
 
 3. Open the app the same way: http://localhost:3000 / http://localhost:8000/health. Ctrl+C stops both.
 
-See [Devcontainer](DEVELOPMENT.md#devcontainer) in DEVELOPMENT.md for the full edit/build/run/test loop
-from here.
+See [Quick start (devcontainer)](DEVELOPMENT.md#quick-start-devcontainer) in DEVELOPMENT.md for the
+run/test/lint loop from here in one place — no `docker compose up`, no host commands.
 
 Any of these paths gets you a running app. From here, see **[DEVELOPMENT.md](DEVELOPMENT.md)** for everything
 else: directory layout, the full day-to-day dev loop (devcontainer, Docker Compose, or plain local),
