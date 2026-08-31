@@ -8,6 +8,8 @@ History before this file starts is in the git log.
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-08-31
+
 ### Added
 
 - `scripts/deploy.sh status` — prints the deployed environment's current URL,
