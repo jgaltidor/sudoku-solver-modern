@@ -213,6 +213,31 @@ Shell access to the instance just needs the `ssm:StartSession` permission (it's 
 
 ---
 
+## Migrating an existing (pre-SSM, local-state) deployment
+
+Only relevant if you deployed with an **older** version of this directory (local Terraform state, SSH
+key pair, port 22). A fresh deployment skips all of this.
+
+1. **Update the `sudoku-deploy` IAM policy** in the console with the current
+   [`iam-policy.json`](iam-policy.json) (adds S3, the instance IAM role, SSM).
+2. Create the state bucket: `cd deploy/bootstrap && terraform init && terraform apply`.
+3. Migrate state to S3 — this one is **not** `-input=false`:
+   ```bash
+   cd deploy/terraform
+   terraform init -migrate-state    # answer "yes" to copy the local state up
+   rm -f terraform.tfvars           # ssh_ingress_cidr etc. are gone
+   ```
+4. The old `aws_key_pair` is in state but the new config (and policy) no longer manages key pairs, so
+   `terraform apply` would fail trying to delete it. Drop it from state first, then delete the key
+   pair by hand (EC2 → Key Pairs):
+   ```bash
+   terraform state rm aws_key_pair.app
+   ```
+5. `terraform apply` — creates the IAM role/profile, removes the port-22 rule, **replaces the
+   instance** (new public IP), attaches the SSM profile. Then verify per section 4.
+
+---
+
 ## Optional: Packer
 
 [`packer/docker-ami.pkr.hcl`](packer/docker-ami.pkr.hcl) bakes an AMI with Docker pre-installed and

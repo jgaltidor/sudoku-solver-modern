@@ -81,6 +81,10 @@ resource "aws_s3_bucket_public_access_block" "tfstate" {
 # State versions pile up forever otherwise; 90 days of history is plenty.
 resource "aws_s3_bucket_lifecycle_configuration" "tfstate" {
   bucket = aws_s3_bucket.tfstate.id
+  # noncurrent_version_expiration is meaningless until versioning is on, and
+  # both resources otherwise depend only on the bucket -- the provider docs
+  # call for this explicit ordering.
+  depends_on = [aws_s3_bucket_versioning.tfstate]
   rule {
     id     = "expire-noncurrent-state-versions"
     status = "Enabled"

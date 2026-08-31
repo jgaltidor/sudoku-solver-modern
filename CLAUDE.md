@@ -109,7 +109,7 @@ scripts/
   solver.sh         # convenience wrapper: `uv run scripts/solver.py`, args forwarded as-is
   example_solve.py  # worked example invocation of scripts/solver.py
   publish.sh        # push the backend/frontend images and the combined image to Docker Hub
-  deploy.sh         # build+push the combined image, then `terraform apply` (see deploy/)
+  deploy.sh         # deploy / stop / start / destroy the AWS EC2 environment (see deploy/)
 example_inputs/
   solve_input_example.json  # sample board used by scripts/example_solve.py
 CHANGELOG.md       # notable changes per release (Keep a Changelog format)

@@ -22,7 +22,14 @@ platform="${DEPLOY_PLATFORM:-linux/amd64}" # match the instance's arch (t3.* = a
 tf() { terraform -chdir="$tfdir" "$@"; }
 instance_id() { tf output -raw instance_id; }
 
-usage() { sed -n '2,15p' "$0"; }
+# Every subcommand touches remote (S3) state, so it must be initialized first --
+# and .terraform/ is gitignored, so a fresh checkout or a rebuilt devcontainer
+# has none. Idempotent + quiet once initialized. Not -migrate-state: converting
+# a pre-existing *local* state to S3 is a deliberate one-off (see backend.tf and
+# "Migrating an existing deployment" in deploy/README.md).
+tf_init() { tf init -input=false >/dev/null; }
+
+usage() { sed -n '2,14p' "$0"; }
 
 cmd="${1:-deploy}"
 [ $# -gt 0 ] && shift || true
@@ -50,12 +57,13 @@ case "$cmd" in
     fi
 
     echo ">> terraform $tf_action"
-    tf init -input=false
+    tf_init
     tf "$tf_action"
     [ "$tf_action" = apply ] && { echo; tf output; }
     ;;
 
   stop)
+    tf_init
     id=$(instance_id)
     echo ">> stopping $id"
     aws ec2 stop-instances --instance-ids "$id" --query 'StoppingInstances[].CurrentState.Name' --output text
@@ -63,6 +71,7 @@ case "$cmd" in
     ;;
 
   start)
+    tf_init
     id=$(instance_id)
     echo ">> starting $id"
     aws ec2 start-instances --instance-ids "$id" --query 'StartingInstances[].CurrentState.Name' --output text
@@ -74,7 +83,7 @@ case "$cmd" in
 
   destroy)
     echo ">> terraform destroy"
-    tf init -input=false
+    tf_init
     tf destroy
     ;;
 
