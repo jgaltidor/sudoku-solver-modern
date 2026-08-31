@@ -1,10 +1,17 @@
 {
   "name": "Sudoku Solver (modern)",
-  "image": "mcr.microsoft.com/devcontainers/python:3.12",
+
+  // Was a bare "image": "mcr.microsoft.com/devcontainers/python:3.12" until the
+  // deploy tooling landed. The Dockerfile is FROM that same image and adds only
+  // Packer (Terraform and the AWS CLI are official features below; Packer has
+  // no maintained feature and no apt suite for this base's Debian release).
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
 
   // Unlike the old repo's xenial-based devcontainer, this base image
   // (Debian 13/trixie, glibc 2.41) has no compatibility blocker against
-  // either feature below -- no manual static-binary/glibc-shim workarounds
+  // the features below -- no manual static-binary/glibc-shim workarounds
   // needed, just the official features directly.
   "features": {
     // Lets frontend/ (npm install, vite) run directly in this same
@@ -42,7 +49,18 @@
     // fallback), but that helper tries `gh auth git-credential` first and
     // logs a harmless "not found" to stderr on every fetch/push when it's
     // missing. Also needed directly for PR/issue work per CLAUDE.md.
-    "ghcr.io/devcontainers/features/github-cli:1": {}
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+
+    // Deploy tooling for deploy/ (Terraform on EC2, see deploy/README.md).
+    // Official feature -- also pulls in tflint. Packer is in the Dockerfile
+    // instead (no maintained feature for it).
+    "ghcr.io/devcontainers/features/terraform:1": {
+      "tflint": "latest"
+    },
+    // AWS CLI, for `aws configure` / `aws ec2 stop-instances` etc. Credentials
+    // are entered by the user at runtime (`aws configure`) into the ~/.aws
+    // named volume below (survives rebuilds); nothing AWS-related is baked in.
+    "ghcr.io/devcontainers/features/aws-cli:1": {}
   },
 
   // One extension per tool this repo actually uses:
@@ -58,6 +76,7 @@
   // - dbaeumer.vscode-eslint / esbenp.prettier-vscode: installed ahead of
   //   frontend/ actually having ESLint/Prettier config -- inert until then,
   //   see CLAUDE.md's note that frontend/ currently has no lint/format step
+  // - hashicorp.terraform: syntax + validation for deploy/terraform/*.tf
   "customizations": {
     "vscode": {
       "extensions": [
@@ -69,7 +88,8 @@
         "ms-azuretools.vscode-containers",
         "tamasfe.even-better-toml",
         "dbaeumer.vscode-eslint",
-        "esbenp.prettier-vscode"
+        "esbenp.prettier-vscode",
+        "hashicorp.terraform"
       ],
       // customizations.vscode.settings, not a checked-in .vscode/settings.json:
       // this path only exists inside the container (see containerEnv's
@@ -95,10 +115,11 @@
   // inside the container would appear to complete in the browser but silently
   // fail to write its credentials file into the (root-owned, read-only-to-
   // vscode) mounts entry below, surfacing later as "Failed to retrieve auth
-  // status after login". Same reasoning applies to the gh-config volume --
-  // without the chown, `gh auth login` would hit the same silent write
-  // failure into a root-owned ~/.config/gh. Runs once per container creation
-  // (idempotent, so harmless on rebuilds against already-fixed volumes too).
+  // status after login". Same reasoning applies to the gh-config and aws
+  // volumes -- without the chown, `gh auth login` / `aws configure` would hit
+  // the same silent write failure into a root-owned ~/.config/gh / ~/.aws.
+  // Runs once per container creation (idempotent, so harmless on rebuilds
+  // against already-fixed volumes too).
   //
   // The gh symlink works around this base image's apt-based install (via the
   // github-cli feature above) landing at /usr/bin/gh -- VS Code's own git
@@ -106,7 +127,7 @@
   // /usr/local/bin/gh rather than resolving it through PATH, so without this
   // every git fetch/push logs "/usr/local/bin/gh: not found" to stderr (the
   // fetch/push itself still succeeds via the helper's other fallback).
-  "postCreateCommand": "sudo ln -sf \"$(command -v gh)\" /usr/local/bin/gh && sudo chown -R vscode:vscode /home/vscode/.claude /home/vscode/.config/gh && uv sync --extra dev && npm install --prefix frontend",
+  "postCreateCommand": "sudo ln -sf \"$(command -v gh)\" /usr/local/bin/gh && sudo chown -R vscode:vscode /home/vscode/.claude /home/vscode/.config/gh /home/vscode/.aws && uv sync --extra dev && npm install --prefix frontend",
 
   // containerEnv, not remoteEnv: remoteEnv is only injected into sessions VS
   // Code itself starts (its integrated terminal, postCreateCommand, tasks) --
@@ -145,10 +166,16 @@
   // source ~/.bashrc/~/.zshrc, so a host shell-profile var wouldn't reach
   // ${localEnv:...} substitution here without extra host-side launchd setup.
   // Run `gh auth login` once inside the container instead -- it persists in
-  // this volume across every rebuild from then on.
+  // this volume across every rebuild from then on. Same pattern for ~/.aws:
+  // run `aws configure` once inside the container (see deploy/README.md) and
+  // the credentials persist across rebuilds without touching a host ~/.aws.
+  // The volume also gives postCreateCommand's chown a real (Docker-created,
+  // root-owned) mountpoint to fix up -- without it the chown -R would error
+  // on a missing path and abort the rest of postCreateCommand.
   "mounts": [
     "source=claude-code-config-sudoku-solver-modern,target=/home/vscode/.claude,type=volume",
-    "source=gh-config-sudoku-solver-modern,target=/home/vscode/.config/gh,type=volume"
+    "source=gh-config-sudoku-solver-modern,target=/home/vscode/.config/gh,type=volume",
+    "source=aws-config-sudoku-solver-modern,target=/home/vscode/.aws,type=volume"
   ],
 
   // uvicorn's default port, and Vite's dev server port

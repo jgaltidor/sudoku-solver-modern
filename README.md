@@ -72,6 +72,12 @@ Any of these paths gets you a running app. From here, see **[DEVELOPMENT.md](DEV
 else: directory layout, the full day-to-day dev loop (devcontainer, Docker Compose, or plain local),
 testing, linting/formatting, the CLI, and how this repo compares to the old one.
 
+## Deploying to AWS
+
+To run the combined production image on an EC2 instance (Terraform-provisioned, Docker installed at
+boot), see **[deploy/README.md](deploy/README.md)**. It's built for a low-cost, mostly-stopped
+learning setup (free-tier `t3.micro`, no Elastic IP, `terraform destroy` back to ~$0).
+
 ## Example request
 
 ```bash
