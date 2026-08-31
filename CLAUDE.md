@@ -14,8 +14,15 @@ of shelling out per request).
 
 ## Git workflow
 
-Do not commit directly to `master`. Create a feature branch, commit your changes there, and open a
-GitHub pull request via `gh`.
+Do not commit code, config, or substantive doc changes directly to `master`. Create a feature branch,
+commit your changes there, and open a GitHub pull request via `gh`.
+
+**Exception — release bookkeeping goes straight to `master`, no branch or PR:** rolling
+`CHANGELOG.md`'s `## [Unreleased]` into a `## [X.Y.Z] - <date>` section (leaving a fresh empty
+`## [Unreleased]` above it), bumping the version in `pyproject.toml` and `frontend/package.json`
+(and regenerating `uv.lock` + `frontend/package-lock.json`), then pushing the `vX.Y.Z` tag and a
+GitHub release whose notes are that CHANGELOG section. Nothing substantive rides along in a release
+commit — if it needs review, it needs a PR.
 
 Add an entry under `## [Unreleased]` in `CHANGELOG.md` for user-visible changes (features, fixes,
 behavior/config changes) — not for pure refactors, test-only, or CI-only churn.
