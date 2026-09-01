@@ -167,7 +167,15 @@
     // token via `claude setup-token` on the host; the macOS Keychain entry
     // the host CLI actually uses can't be read from inside this container.
     "CLAUDE_CODE_OAUTH_TOKEN": "${localEnv:CLAUDE_CODE_OAUTH_TOKEN}",
-    "ANTHROPIC_API_KEY": "${localEnv:ANTHROPIC_API_KEY}"
+    "ANTHROPIC_API_KEY": "${localEnv:ANTHROPIC_API_KEY}",
+    // The claude-code feature installs the CLI into nvm's global prefix, where
+    // the package dir ends up root-owned and not group-writable -- so the
+    // autoupdater (running as vscode) can't write there and every launch prints
+    // "Auto-update failed: no write permission to npm prefix". The feature owns
+    // the CLI version here anyway (a container rebuild pulls the latest), so an
+    // in-container self-update would only create version drift between
+    // contributors. Turn it off.
+    "DISABLE_AUTOUPDATER": "1"
   },
 
   // Named volumes (not host bind mounts) for the container's own ~/.claude
