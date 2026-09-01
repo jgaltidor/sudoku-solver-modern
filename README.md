@@ -20,8 +20,8 @@ docker run -p 8000:8000 jgaltidor/sudoku-solver-modern:latest
 
 Open http://localhost:8000. This is a single combined image (frontend's production build served
 directly by the backend, one process/port) -- no repo clone, no `docker-compose.yml`. See
-`Dockerfile.combined` in [DEVELOPMENT.md](DEVELOPMENT.md#docker-compose-host-machine) for how it differs
-from the two-image dev setup below.
+[`Dockerfile.combined` in DEVELOPMENT.md](DEVELOPMENT.md#docker-compose-host-machine) for how it
+differs from the two-image dev setup below.
 
 ### Docker Desktop, no editing
 
@@ -47,7 +47,7 @@ Engine + the Compose plugin).
    - Backend health check: http://localhost:8000/health
 
 Run this from a regular host terminal, not a VS Code devcontainer terminal -- see
-[Devcontainer](DEVELOPMENT.md#devcontainer) in DEVELOPMENT.md for why that combination doesn't work.
+[Devcontainer in DEVELOPMENT.md](DEVELOPMENT.md#devcontainer) for why that combination doesn't work.
 
 ### VS Code devcontainer (for editing)
 
@@ -68,7 +68,7 @@ and Docker Desktop/Engine (only to build the devcontainer itself).
 
 3. Open the app the same way: http://localhost:3000 / http://localhost:8000/health. Ctrl+C stops both.
 
-See [Quick start (devcontainer)](DEVELOPMENT.md#quick-start-devcontainer) in DEVELOPMENT.md for the
+See [Quick start (devcontainer) in DEVELOPMENT.md](DEVELOPMENT.md#quick-start-devcontainer) for the
 run/test/lint loop from here in one place — no `docker compose up`, no host commands.
 
 Any of these paths gets you a running app. From here, see **[DEVELOPMENT.md](DEVELOPMENT.md)** for everything

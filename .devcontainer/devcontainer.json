@@ -108,7 +108,14 @@
       // back to the base image's system Python -- which has none of this
       // project's dependencies installed -- for both running and debugging.
       "settings": {
-        "python.defaultInterpreterPath": "/home/vscode/.venv/bin/python"
+        "python.defaultInterpreterPath": "/home/vscode/.venv/bin/python",
+        // The Python extension otherwise types `source .../activate` into every
+        // new integrated terminal (python.terminal.activateEnvironment defaults
+        // to true). Launching `claude` in a fresh terminal races that injected
+        // text onto Claude Code's stdin, where it lands as a stray first prompt.
+        // This repo never needs an activated venv anyway -- everything goes
+        // through `uv run` (see CLAUDE.md) -- so turn the auto-activation off.
+        "python.terminal.activateEnvironment": false
       }
     }
   },
