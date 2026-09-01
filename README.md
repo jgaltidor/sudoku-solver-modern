@@ -20,7 +20,7 @@ docker run -p 8000:8000 jgaltidor/sudoku-solver-modern:latest
 
 Open http://localhost:8000. This is a single combined image (frontend's production build served
 directly by the backend, one process/port) -- no repo clone, no `docker-compose.yml`. See
-[`Dockerfile.combined` in DEVELOPMENT.md](DEVELOPMENT.md#docker-compose-host-machine) for how it
+[`Dockerfile.combined` in DEVELOPMENT.md](DEVELOPMENT.md#dockerfilecombined-standalone-image) for how it
 differs from the two-image dev setup below.
 
 ### Docker Desktop, no editing
