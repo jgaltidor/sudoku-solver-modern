@@ -108,7 +108,14 @@
       // back to the base image's system Python -- which has none of this
       // project's dependencies installed -- for both running and debugging.
       "settings": {
-        "python.defaultInterpreterPath": "/home/vscode/.venv/bin/python"
+        "python.defaultInterpreterPath": "/home/vscode/.venv/bin/python",
+        // The Python extension otherwise types `source .../activate` into every
+        // new integrated terminal (python.terminal.activateEnvironment defaults
+        // to true). Launching `claude` in a fresh terminal races that injected
+        // text onto Claude Code's stdin, where it lands as a stray first prompt.
+        // This repo never needs an activated venv anyway -- everything goes
+        // through `uv run` (see CLAUDE.md) -- so turn the auto-activation off.
+        "python.terminal.activateEnvironment": false
       }
     }
   },
@@ -160,7 +167,15 @@
     // token via `claude setup-token` on the host; the macOS Keychain entry
     // the host CLI actually uses can't be read from inside this container.
     "CLAUDE_CODE_OAUTH_TOKEN": "${localEnv:CLAUDE_CODE_OAUTH_TOKEN}",
-    "ANTHROPIC_API_KEY": "${localEnv:ANTHROPIC_API_KEY}"
+    "ANTHROPIC_API_KEY": "${localEnv:ANTHROPIC_API_KEY}",
+    // The claude-code feature installs the CLI into nvm's global prefix, where
+    // the package dir ends up root-owned and not group-writable -- so the
+    // autoupdater (running as vscode) can't write there and every launch prints
+    // "Auto-update failed: no write permission to npm prefix". The feature owns
+    // the CLI version here anyway (a container rebuild pulls the latest), so an
+    // in-container self-update would only create version drift between
+    // contributors. Turn it off.
+    "DISABLE_AUTOUPDATER": "1"
   },
 
   // Named volumes (not host bind mounts) for the container's own ~/.claude

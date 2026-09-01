@@ -151,6 +151,9 @@ volume, not your host's `~/.claude`, so the first run needs its own login: eithe
 or set `CLAUDE_CODE_OAUTH_TOKEN`/`ANTHROPIC_API_KEY` in your host shell before reopening the container
 (run `claude setup-token` on the host to mint one) so it's picked up automatically instead.
 
+Its in-container autoupdater is off (`DISABLE_AUTOUPDATER` in `devcontainer.json`) -- the `claude-code`
+feature owns the version, so rebuild the container to pick up a newer `claude`.
+
 ### Docker Compose (host machine)
 
 > [!IMPORTANT]
