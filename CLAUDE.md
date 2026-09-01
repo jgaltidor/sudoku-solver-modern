@@ -27,6 +27,15 @@ commit — if it needs review, it needs a PR.
 Add an entry under `## [Unreleased]` in `CHANGELOG.md` for user-visible changes (features, fixes,
 behavior/config changes) — not for pure refactors, test-only, or CI-only churn.
 
+**GitHub-side enforcement.** Two repository rulesets on `master` back this workflow (they live in
+GitHub settings, not the repo — see `gh api repos/{owner}/{repo}/rulesets`):
+- *"Protect master"* — requires a PR to merge (0 approvals, threads resolved) and the four CI checks
+  (`test`, `frontend`, `docker-build`, `deploy-lint`) to pass, and blocks force-pushes and deletion.
+  The **repository-admin role bypasses it** (`always`), which is what lets the release-bookkeeping
+  exception above push straight to `master`.
+- *"master: no force-push or deletion (no bypass)"* — blocks history rewrites and branch deletion for
+  everyone, admin included. Nothing legitimate (release bookkeeping included) needs either.
+
 ## Commands
 
 Devcontainer, both services at once (from repo root):
