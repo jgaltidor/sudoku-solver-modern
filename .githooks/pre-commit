@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+#
+# Auto-format staged files before they're committed, mirroring what CI checks:
+#   - Python:    ruff check --fix + ruff format   (CI: `ruff check` / `ruff format --check`)
+#   - frontend/: prettier --write                 (CI: `npm run format:check`)
+#
+# Enabled by pointing git at this directory:
+#   git config core.hooksPath .githooks
+# The devcontainer's postCreateCommand does that automatically; a host clone runs
+# it once by hand (see DEVELOPMENT.md "Automatic formatting").
+#
+# A missing toolchain (no `uv`, no frontend `node_modules`) is a warning, not a
+# failure -- CI is still the hard gate. Bypass entirely with `git commit --no-verify`.
+#
+# Formatted files are re-staged in full: if you `git add -p`'d part of a file,
+# the formatter's changes to the rest get staged too. Rare in practice; use
+# --no-verify for those commits.
+#
+# Written to run under bash 3.2 (stock macOS) as well as the devcontainer's
+# bash 5. The staged-file list is piped NUL-delimited straight into `xargs -0`
+# rather than captured in a variable (command substitution strips NUL bytes).
+set -euo pipefail
+
+cd "$(git rev-parse --show-toplevel)"
+
+PY_SPEC=('*.py')
+FE_SPEC=('frontend/*.js' 'frontend/*.jsx' 'frontend/*.json' 'frontend/*.css' 'frontend/*.html')
+
+any_staged() { git diff --cached --name-only --diff-filter=ACMR -- "$@" | grep -q .; }
+list_staged() { git diff --cached --name-only --diff-filter=ACMR -z -- "$@"; }
+
+changed=0
+
+if any_staged "${PY_SPEC[@]}"; then
+  if command -v uv >/dev/null 2>&1; then
+    list_staged "${PY_SPEC[@]}" | xargs -0 uv run --quiet ruff check --fix --quiet --
+    list_staged "${PY_SPEC[@]}" | xargs -0 uv run --quiet ruff format --quiet --
+    list_staged "${PY_SPEC[@]}" | xargs -0 git add --
+    changed=1
+  else
+    echo "pre-commit: 'uv' not found -- skipping Python formatting (CI still checks it)." >&2
+  fi
+fi
+
+if any_staged "${FE_SPEC[@]}"; then
+  # Prettier resolves frontend/.prettierrc.json per-file, so it works from here.
+  if [ -x frontend/node_modules/.bin/prettier ]; then
+    list_staged "${FE_SPEC[@]}" | xargs -0 frontend/node_modules/.bin/prettier --write --log-level warn --
+    list_staged "${FE_SPEC[@]}" | xargs -0 git add --
+    changed=1
+  else
+    echo "pre-commit: frontend deps missing -- skipping Prettier (run 'npm install --prefix frontend'; CI still checks it)." >&2
+  fi
+fi
+
+[ "$changed" -eq 1 ] && echo "pre-commit: formatted staged files and re-staged them."
+exit 0
