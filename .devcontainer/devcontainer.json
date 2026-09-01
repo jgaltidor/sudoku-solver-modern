@@ -73,9 +73,10 @@
   //   for the Dockerfiles/docker-compose.yml this repo's docker-based workflow
   //   actually relies on
   // - tamasfe.even-better-toml: pyproject.toml editing/schema validation
-  // - dbaeumer.vscode-eslint / esbenp.prettier-vscode: installed ahead of
-  //   frontend/ actually having ESLint/Prettier config -- inert until then,
-  //   see CLAUDE.md's note that frontend/ currently has no lint/format step
+  // - dbaeumer.vscode-eslint / esbenp.prettier-vscode: ESLint + Prettier for
+  //   frontend/ (config in frontend/eslint.config.js + frontend/.prettierrc.json);
+  //   Prettier is the format-on-save formatter for frontend/, see the settings
+  //   block below
   // - hashicorp.terraform: syntax + validation for deploy/terraform/*.tf
   // - hashicorp.hcl: the non-Terraform HCL -- deploy/packer/*.pkr.hcl and the
   //   *.terraform.lock.hcl files (the terraform extension only claims *.tf).
@@ -115,7 +116,32 @@
         // text onto Claude Code's stdin, where it lands as a stray first prompt.
         // This repo never needs an activated venv anyway -- everything goes
         // through `uv run` (see CLAUDE.md) -- so turn the auto-activation off.
-        "python.terminal.activateEnvironment": false
+        "python.terminal.activateEnvironment": false,
+
+        // Format on save, scoped to exactly what CI enforces (see DEVELOPMENT.md
+        // "Automatic formatting"): ruff for Python, Prettier for frontend/.
+        // `prettier.requireConfig` stops Prettier touching repo-root
+        // JSON/YAML/Markdown -- only frontend/ has a .prettierrc.json, and CI
+        // only format-checks there. `.tf` keeps its own formatter (CI's
+        // deploy-lint runs `terraform fmt -check`). The yaml/jsonc/toml/markdown
+        // overrides below stop a save reformatting files no CI job governs.
+        // Editor-agnostic enforcement is .githooks/pre-commit; this is just
+        // faster feedback while editing.
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+          "source.fixAll.ruff": "explicit"
+        },
+        "prettier.requireConfig": true,
+        "[python]": {
+          "editor.defaultFormatter": "charliermarsh.ruff"
+        },
+        "[javascript][javascriptreact][css][html][json]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        },
+        "[yaml]": { "editor.formatOnSave": false },
+        "[jsonc]": { "editor.formatOnSave": false },
+        "[toml]": { "editor.formatOnSave": false },
+        "[markdown]": { "editor.formatOnSave": false }
       }
     }
   },
@@ -141,7 +167,12 @@
   // /usr/local/bin/gh rather than resolving it through PATH, so without this
   // every git fetch/push logs "/usr/local/bin/gh: not found" to stderr (the
   // fetch/push itself still succeeds via the helper's other fallback).
-  "postCreateCommand": "sudo ln -sf \"$(command -v gh)\" /usr/local/bin/gh && sudo chown -R vscode:vscode /home/vscode/.claude /home/vscode/.config/gh /home/vscode/.aws && uv sync --extra dev && npm install --prefix frontend",
+  //
+  // The final `git config core.hooksPath` activates .githooks/pre-commit
+  // (auto-formats staged files, mirroring CI) for commits made in the
+  // container; a host clone runs that same one-liner by hand (see
+  // DEVELOPMENT.md "Automatic formatting").
+  "postCreateCommand": "sudo ln -sf \"$(command -v gh)\" /usr/local/bin/gh && sudo chown -R vscode:vscode /home/vscode/.claude /home/vscode/.config/gh /home/vscode/.aws && uv sync --extra dev && npm install --prefix frontend && git config core.hooksPath .githooks",
 
   // containerEnv, not remoteEnv: remoteEnv is only injected into sessions VS
   // Code itself starts (its integrated terminal, postCreateCommand, tasks) --

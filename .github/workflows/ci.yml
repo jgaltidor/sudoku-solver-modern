@@ -118,4 +118,4 @@ jobs:
       # the devcontainer (.devcontainer/Dockerfile) and backs the editor
       # extension, so keep the two in step.
       - name: Shellcheck
-        run: shellcheck scripts/*.sh deploy/terraform/user_data.sh
+        run: shellcheck scripts/*.sh deploy/terraform/user_data.sh .githooks/pre-commit

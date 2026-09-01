@@ -187,6 +187,14 @@ Key points:
   own comments for the deliberate rule overrides (old-style class components, no PropTypes). `vite.config.js`
   needs `globals.node` specifically, not `globals.browser`, since it runs at dev-server startup under
   Node, not in the bundled browser code.
+- **Formatting is auto-applied, not just checked.** `.githooks/pre-commit` (activated by
+  `git config core.hooksPath .githooks` — the devcontainer's `postCreateCommand` does this) runs
+  `ruff format`/`ruff check --fix` on staged `*.py` and `prettier --write` on staged `frontend/`
+  files, re-stages them, and lets the commit proceed — so a `git commit` here can modify the files
+  you staged. It degrades to a warning if `uv`/frontend `node_modules` are absent; `--no-verify`
+  skips it. `.devcontainer/devcontainer.json` also turns on VS Code format-on-save with the same
+  scope. CI still runs the `--check` variants as the hard gate (see DEVELOPMENT.md "Automatic
+  formatting").
 - **`src/index.jsx` has no exported component** — it mounts itself into `#root` as an import-time
   side effect (`createRoot(...).render(<Game />)` at module scope), so `index.test.jsx` imports it once
   in `beforeAll` (wrapped in `act()`, since React 18's `createRoot().render()` schedules rather than

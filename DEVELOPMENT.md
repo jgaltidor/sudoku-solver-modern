@@ -271,6 +271,27 @@ npm run format:check   # prettier --check; npm run format to auto-fix
 `docker compose build`/`docker build -f Dockerfile.combined` to catch a broken `Dockerfile`/
 `docker-compose.yml`/`Dockerfile.combined`) on every push/PR.
 
+### Automatic formatting
+
+Three layers keep formatting from ever reaching CI as a failure:
+
+- **`.editorconfig`** — baseline whitespace rules (LF, final newline, indent width, trailing
+  whitespace) that every editor honors, so those never depend on anyone's local settings.
+- **Format on save** in the devcontainer — `.devcontainer/devcontainer.json`'s VS Code settings run
+  ruff on `*.py` and Prettier on `frontend/` on every save (scoped to exactly what CI checks;
+  `prettier.requireConfig` keeps Prettier off repo-root files no CI job governs).
+- **`.githooks/pre-commit`** — the editor-agnostic backstop. On `git commit` it runs
+  `ruff check --fix` + `ruff format` on staged `*.py` and `prettier --write` on staged `frontend/`
+  files, re-stages them, and continues. A missing toolchain is a warning, not a failure; bypass the
+  whole hook with `git commit --no-verify`.
+
+The devcontainer activates the hook automatically (`postCreateCommand` runs
+`git config core.hooksPath .githooks`). **In a host clone, enable it once:**
+
+```bash
+git config core.hooksPath .githooks
+```
+
 ## CLI
 
 Solve a board from the command line, without the HTTP API:
