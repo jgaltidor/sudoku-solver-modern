@@ -190,6 +190,8 @@ change, since this script deliberately doesn't rebuild on its own.
 Hub. After `docker login` and a `docker compose build`, `scripts/publish.sh` pushes them -- mirrors the
 old repo's `docker/publish.sh`, just relocated next to this repo's other CLI scripts.
 
+### Dockerfile.combined (standalone image)
+
 `Dockerfile.combined` is a separate, third image: the frontend's `vite build` output bundled into the
 backend image, served from one process/port (`docker run -p 8000:8000
 jgaltidor/sudoku-solver-modern:latest`) -- no `docker-compose.yml`, no bind mounts, no `--reload`/Vite
